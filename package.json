@@ -1,0 +1,26 @@
+{
+  "name": "recipe-share-api",
+  "version": "1.0.0",
+  "description": "Simple recipe share API",
+  "main": "app.js",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "npx tsc -w & nodemon dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.13.0",
+    "nodemon": "^3.1.2",
+    "typescript": "^5.4.5"
+  }
+}
