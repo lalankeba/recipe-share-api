@@ -33,18 +33,14 @@ const rate_limit_1 = __importDefault(require("./config/rate-limit"));
 const request_logger_1 = __importDefault(require("./middleware/request-logger"));
 const home_route_1 = __importDefault(require("./routes/home-route"));
 const error_handler_1 = __importDefault(require("./middleware/error-handler"));
-const app_error_1 = __importDefault(require("./errors/app-error"));
+const not_found_handler_1 = __importDefault(require("./middleware/not-found-handler"));
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
 app.use(rate_limit_1.default);
 app.use(request_logger_1.default);
 app.use(express_1.default.json());
 app.use('/', home_route_1.default);
-app.use((req, res, next) => {
-    const err = new app_error_1.default('Not Found');
-    err.statusCode = 404;
-    next(err);
-});
+app.use(not_found_handler_1.default);
 app.use(error_handler_1.default);
 app.listen(port, () => {
     console.info(`app is listening port: ${port}`);
