@@ -34,14 +34,31 @@ const request_logger_1 = __importDefault(require("./middleware/request-logger"))
 const home_route_1 = __importDefault(require("./routes/home-route"));
 const error_handler_1 = __importDefault(require("./middleware/error-handler"));
 const not_found_handler_1 = __importDefault(require("./middleware/not-found-handler"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const logger_1 = __importDefault(require("./config/logger"));
+const auth_route_1 = __importDefault(require("./routes/auth-route"));
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
+const mongoUri = process.env.MONGO_URI || '';
 app.use(rate_limit_1.default);
 app.use(request_logger_1.default);
 app.use(express_1.default.json());
 app.use('/', home_route_1.default);
+app.use('/auth', auth_route_1.default);
 app.use(not_found_handler_1.default);
 app.use(error_handler_1.default);
-app.listen(port, () => {
-    console.info(`app is listening port: ${port}`);
-});
+const startServer = async () => {
+    try {
+        logger_1.default.info('Connecting to database...');
+        await mongoose_1.default.connect(mongoUri);
+        logger_1.default.info('Connected to database');
+        app.listen(port, () => {
+            logger_1.default.info(`App is running on port: ${port}`);
+        });
+    }
+    catch (error) {
+        logger_1.default.error('Error connecting with db ', error);
+        process.exit(1);
+    }
+};
+startServer();
