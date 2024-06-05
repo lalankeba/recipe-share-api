@@ -4,7 +4,7 @@ import Gender from '../enums/gender';
 import Role from '../enums/role';
 
 interface UserDocument extends IUser, Document {}
-  
+
 const UserModel = new Schema<UserDocument>(
     {
         firstName: { type: String, required: true },
@@ -15,7 +15,13 @@ const UserModel = new Schema<UserDocument>(
         roles: { type: [String], enum: Object.values(Role), default: [Role.User] }
     },
     {
-      timestamps: true
+      timestamps: true,
+      toJSON: {
+        transform: (doc, ret, options) => {
+          delete ret.password;
+          return ret;
+        }
+      }
     }
 );
 

@@ -22,14 +22,19 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.register = void 0;
 const authService = __importStar(require("../services/auth-service"));
+const logger_1 = __importDefault(require("../config/logger"));
 const register = async (req, res, next) => {
     try {
+        logger_1.default.info(`Creating user...`);
         const { firstName, lastName, gender, email, password } = req.body;
-        await authService.register(firstName, lastName, gender, email, password);
-        res.status(201).json({ message: `Employee: ${firstName} ${lastName} registered` });
+        const dUser = await authService.register(firstName, lastName, gender, email, password);
+        res.status(201).json(dUser);
     }
     catch (err) {
         next(err);

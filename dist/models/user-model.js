@@ -14,6 +14,12 @@ const UserModel = new mongoose_1.Schema({
     password: { type: String, required: true },
     roles: { type: [String], enum: Object.values(role_1.default), default: [role_1.default.User] }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: {
+        transform: (doc, ret, options) => {
+            delete ret.password;
+            return ret;
+        }
+    }
 });
 exports.default = (0, mongoose_1.model)('User', UserModel);
