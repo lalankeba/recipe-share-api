@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.register = void 0;
+const logger_1 = __importDefault(require("../config/logger"));
 const validate_password_1 = __importDefault(require("../config/validate-password"));
 const app_error_1 = __importDefault(require("../errors/app-error"));
 const user_model_1 = __importDefault(require("../models/user-model"));
@@ -18,8 +19,8 @@ const register = async (firstName, lastName, gender, email, password) => {
         throw new app_error_1.default(`Existing user found for the email: ${email}`, 400);
     }
     const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-    const user = await user_model_1.default.create({ firstName, lastName, gender, email, password: hashedPassword });
-    const employeeObj = user.toObject();
-    return employeeObj;
+    const userDocument = await user_model_1.default.create({ firstName, lastName, gender, email, password: hashedPassword });
+    logger_1.default.info(`User created for ${firstName} ${lastName}`);
+    return { ...userDocument.toJSON() };
 };
 exports.register = register;
