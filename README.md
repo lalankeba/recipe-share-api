@@ -1,7 +1,5 @@
 # Recipe Share API
 
-![Static Badge](https://img.shields.io/badge/codersdash-assignment-DD658B)
-
 <p align="center">
   <a href="https://codersdash.com/full-stack-web-development/">
     <img alt="CodersDash Full Stack Web Development" src="https://img.shields.io/badge/codersdash-assignment-DD658B">
