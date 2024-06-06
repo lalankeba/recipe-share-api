@@ -36,7 +36,7 @@ const validateGender = (gender: Gender): boolean => {
         throw new AppError('Gender required', 400);
     } else if (!(Object.values(Gender).includes(gender))) {
         throw new AppError(`Gender: ${gender} is not valid. Valid values are ${Object.values(Gender)}`, 400);
-    } 
+    }
     return true;
 }
 

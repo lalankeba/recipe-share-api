@@ -58,14 +58,44 @@ describe('auth', () => {
         expect(registeredUser).not.toHaveProperty('password');
     });
 
-    it('Should not register a new user with invalid password', async () => {
+    const invalidUserDetails: [string, string, Gender, string, string][] = [
+        ['', 'Doe', Gender.Male, 'john@example.com', 'Abcd@1234'], // no first fname
+        ['J0hn', 'Doe', Gender.Male, 'john@example.com', 'Abcd@1234'], // digit at first name
+        ['Joh#', 'Doe', Gender.Male, 'john@example.com', 'Abcd@1234'], // symbol at first name
+        ['John', '', Gender.Male, 'john@example.com', 'Abcd@1234'], // no last name
+        ['John', 'D0e', Gender.Male, 'john@example.com', 'Abcd@1234'], // digit at last name
+        ['John', 'Do3', Gender.Male, 'john@example.com', 'Abcd@1234'], // symbol at last name
+        ['John', 'Doe', 'Male' as Gender, 'john@example.com', 'Abcd@1234'], // invalid word male
+        ['John', 'Doe', 'invalidGender' as Gender, 'john@example.com', 'Abcd@1234'], // invalid gender
+        ['John', 'Doe', Gender.Male, '', 'Abcd@example'], // invalid email
+        ['John', 'Doe', Gender.Male, 'john#example.com', 'Abcd@1234'], // invalid email
+    ];
+    test.each(invalidUserDetails)('Should not register a new user with invalid details firstName:%s, lastName:%s, gender:%s, email:%s', async (firstName, lastName, gender, email, password) => {
+        // Arrange
+        (userModel.findOne as jest.Mock).mockResolvedValue(undefined);
+    
+        // Act & Assert
+        await expect(authService.register(firstName, lastName, gender, email, password))
+            .rejects.toThrow(AppError);
+    });
+
+    const invalidPasswords: [string, string][] = [
+        ['john@example.com', 'Ab@12'], // no min length
+        ['john@example.com', 'Abcd@12345678901234567890123456789012345678901234567890'], // over max length
+        ['john@example.com', 'abcd@1234'], // no uppercase letter
+        ['john@example.com', 'ABCD@1234'], // no lowercase letter
+        ['john@example.com', 'Abcd@efgh'], // no digits
+        ['john@example.com', 'Abcd@ 1234'], // no spaces
+        ['john@example.com', 'Abcd12345'], // no symbols
+        ['john@example.com', 'Passw0rd'], // blacklisted values
+    ];
+    test.each(invalidPasswords)('Should not register a new user with valid email %s and invalid password %s', async (email, password) => {
         // Arrange
         const firstName = 'Mary';
         const lastName = 'Anne';
         const gender = Gender.Female;
-        const email = "mary@example.com";
-        const password = "notagoodpassword";
-
+        (userModel.findOne as jest.Mock).mockResolvedValue(undefined);
+    
         // Act & Assert
         await expect(authService.register(firstName, lastName, gender, email, password))
             .rejects.toThrow(AppError);
