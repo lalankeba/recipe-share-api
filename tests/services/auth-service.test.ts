@@ -8,6 +8,10 @@ import { DisplayableUser } from '../../src/interfaces/i-user';
 import AppError from '../../src/errors/app-error';
 
 jest.mock('../../src/models/user-model');
+jest.mock('bcryptjs', () => ({
+    hash: jest.fn().mockResolvedValue('hashed$2a$10$WMTof/EfqMIoT2foX0N9x3NZL.XnVPn8g6value'),
+    compare: jest.fn().mockResolvedValue(true)
+}));
 
 describe('auth', () => {
 
@@ -104,6 +108,98 @@ describe('auth', () => {
             .rejects.toThrow(
                 expect.objectContaining({ message: expect.stringMatching(/^Existing user found for the email/) })
             );
+    });
+
+    it('Should login a user', async () => {
+        // Arrange
+        const id = new mongoose.Types.ObjectId();
+        const firstName = 'John';
+        const lastName = 'Doe';
+        const gender = "MALE";
+        const email = "john@example.com";
+        const password = "Abcd@1234";
+        const roles = [Role.User];
+
+        const userDoc = {
+            _id: id,
+            firstName,
+            lastName,
+            gender,
+            email,
+            password: await bcryptjs.hash(password, 10),
+            roles,
+            toJSON: function() {
+                const { password, ...rest } = this;
+                return rest;
+            }
+        };
+
+        (userModel.findOne as jest.Mock).mockResolvedValue(userDoc);
+        (bcryptjs.compare as jest.Mock).mockResolvedValue(true);
+
+        // Act
+        const token = await authService.login(email, password);
+
+        // Assert
+        expect(token).toBeTruthy();
+    });
+
+    const invalidCredentials: [string, string][] = [
+        ['john@example.com', ''],
+        ['', 'Abcd@1234'],
+        ['', '']
+    ];
+    test.each(invalidCredentials)('Should not login a invalid credentials with email %s and password %s', async (email, password) => {
+        
+        // Act & Assert
+        await expect(authService.login(email, password))
+          .rejects.toThrow(AppError);
+    });
+
+    it('Should not login a non existent user', async () => {
+        // Arrange
+        const email = "john@example.com";
+        const password = "Abcd@1234";
+
+        (userModel.findOne as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(authService.login(email, password))
+            .rejects.toThrow(AppError);
+
+    });
+
+    it('Should not login an employee when passwords do not match', async () => {
+        // Arrange
+        const id = new mongoose.Types.ObjectId();
+        const firstName = 'John';
+        const lastName = 'Doe';
+        const gender = "MALE";
+        const email = "john@example.com";
+        const password = "Abcd@1234";
+        const roles = ["EMPLOYEE"];
+        
+        const userDoc = {
+            _id: id,
+            firstName,
+            lastName,
+            gender,
+            email,
+            password: await bcryptjs.hash(password, 10),
+            roles,
+            toJSON: function() {
+                const { password, ...rest } = this;
+                return rest;
+            }
+        };
+
+        (userModel.findOne as jest.Mock).mockResolvedValue(userDoc);
+        (bcryptjs.compare as jest.Mock).mockResolvedValue(false);
+
+        // Act & Assert
+        await expect(authService.login(email, password))
+            .rejects.toThrow(AppError);
+
     });
 
 });

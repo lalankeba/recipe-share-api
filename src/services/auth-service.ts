@@ -5,6 +5,8 @@ import AppError from '../errors/app-error';
 import { DisplayableUser } from '../interfaces/i-user';
 import userModel, { UserDocument } from '../models/user-model';
 import bcrypt from 'bcryptjs';
+import jsonwebtoken from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 
 
 const register = async (firstName: string, lastName: string, gender: Gender, email: string, password: string): Promise<DisplayableUser> => {
@@ -25,4 +27,29 @@ const register = async (firstName: string, lastName: string, gender: Gender, ema
     return { ...userDocument.toJSON() };
 }
 
-export { register };
+const login = async (email: string, password: string): Promise<string> => {
+    if (!email || !password) {
+        throw new AppError('Credentials are required', 400);
+    }
+
+    const user = await userModel.findOne({ email: email });
+    if (!user) { // no user found for the provided email
+        throw new AppError('Credentials are invalid', 400);
+    } else {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) { // valid user
+            const JWT_SECRET = process.env.JWT_SECRET as string;
+            const token = jsonwebtoken.sign(
+                { jwtid: uuidv4(), email: user.email, roles: user.roles }, 
+                JWT_SECRET,
+                { algorithm: 'HS512', expiresIn: '1d' }
+            );
+            logger.info(`User logged in`);
+            return token;
+        } else { // password does not match
+            throw new AppError('Credentials are invalid', 400);
+        }
+    }
+}
+
+export { register, login };

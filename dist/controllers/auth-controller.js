@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.register = void 0;
+exports.login = exports.register = void 0;
 const authService = __importStar(require("../services/auth-service"));
 const logger_1 = __importDefault(require("../config/logger"));
 const register = async (req, res, next) => {
@@ -41,3 +41,15 @@ const register = async (req, res, next) => {
     }
 };
 exports.register = register;
+const login = async (req, res, next) => {
+    try {
+        logger_1.default.info(`Login user...`);
+        const { email, password } = req.body;
+        const token = await authService.login(email, password);
+        res.status(200).json({ token });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.login = login;
