@@ -2,6 +2,15 @@
 
 ![Static Badge](https://img.shields.io/badge/codersdash-assignment-DD658B)
 
+<p align="center">
+  <a href="https://codersdash.com/full-stack-web-development/">
+    <img alt="CodersDash Full Stack Web Development" src="https://img.shields.io/badge/codersdash-assignment-DD658B">
+  </a>
+  <a href="https://github.com/lalankeba/recipe-share-api/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="Recipe Share API is released under the MIT license." >
+  </a>
+</p>
+
 This project is built with Node.js, Express, and MongoDB. It provides a simple API for managing recipe data. The application supports user authentication through JSON Web Tokens (JWT), ensuring secure access to various functionalities based on user roles.
 
 ## Features
@@ -43,6 +52,14 @@ npm test
 - `GET /`: Returns welcome message
 - `POST /auth/register`: Register a new user.
 - `POST /auth/login`: All users login.
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+For more information about the MIT License, you can visit the [MIT License page](https://opensource.org/licenses/MIT).
+
 
 ## Sample Requests
 
