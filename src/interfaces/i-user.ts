@@ -10,7 +10,9 @@ interface IUser {
     roles: Role[];
 }
 
-interface DisplayableUser extends Omit<IUser, "password"> {}
+interface DisplayableUser extends Omit<IUser, "password"> {
+    _id: string;
+}
 
 export default IUser;
 export { DisplayableUser };
