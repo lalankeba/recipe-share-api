@@ -7,6 +7,7 @@ This project is built with Node.js, Express, and MongoDB. It provides a simple A
 ## Features
 
 - **User Registration & Login**: Users can register for an account and log in to access their profile.
+- **JWT Authentication**: Secure access to the API using JSON Web Tokens.
 
 ## Installation
 
@@ -41,6 +42,7 @@ npm test
 
 - `GET /`: Returns welcome message
 - `POST /auth/register`: Register a new user.
+- `POST /auth/login`: All users login.
 
 ## Sample Requests
 
@@ -59,5 +61,14 @@ curl http://localhost:3000/auth/register/ -H 'Content-Type: application/json' \
     "gender":"MALE",
     "email": "john@example.com",
     "password": "Abcd@1234"
+}'
+```
+
+### Login user
+```
+curl http://localhost:3000/auth/login/ -H 'Content-Type: application/json' \
+-d '{ 
+    "email": "john@example.com", 
+    "password": "Abcd@1234" 
 }'
 ```
