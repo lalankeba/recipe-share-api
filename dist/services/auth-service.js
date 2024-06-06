@@ -11,7 +11,9 @@ const user_model_1 = __importDefault(require("../models/user-model"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const uuid_1 = require("uuid");
+const user_validator_1 = require("../validators/user-validator");
 const register = async (firstName, lastName, gender, email, password) => {
+    (0, user_validator_1.validateUserDetails)(firstName, lastName, gender, email);
     const passwordValidationResult = (0, validate_password_1.default)(password);
     if (Array.isArray(passwordValidationResult) && passwordValidationResult.length !== 0) { // not a valid password
         throw new app_error_1.default(`Invalid password. ${passwordValidationResult[0].message}`, 400);
@@ -21,7 +23,13 @@ const register = async (firstName, lastName, gender, email, password) => {
         throw new app_error_1.default(`Existing user found for the email: ${email}`, 400);
     }
     const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-    const userDocument = await user_model_1.default.create({ firstName, lastName, gender, email, password: hashedPassword });
+    const userDocument = await user_model_1.default.create({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        gender,
+        email: email.toLowerCase(),
+        password: hashedPassword
+    });
     logger_1.default.info(`User created for ${firstName} ${lastName}`);
     return { ...userDocument.toJSON() };
 };
