@@ -8,7 +8,7 @@
     "ts.check": "tsc --project tsconfig.json",
     "add-build": "git add dist",
     "dev": "npx tsc -w & nodemon dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node dist/app.js"
   },
   "pre-commit": [
@@ -33,12 +33,22 @@
     "winston": "^3.13.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.6",
+    "@babel/preset-env": "^7.24.6",
+    "@babel/preset-typescript": "^7.24.6",
+    "@shelf/jest-mongodb": "^4.3.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^20.14.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.2",
     "pre-commit": "^1.2.2",
     "rimraf": "^5.0.7",
+    "ts-jest": "^29.1.4",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }
 }
