@@ -45,8 +45,14 @@ const login = async (email, password) => {
     else {
         const isMatch = await bcryptjs_1.default.compare(password, user.password);
         if (isMatch) { // valid user
+            const jwtPayload = {
+                jwtid: (0, uuid_1.v4)(), email: user.email, roles: user.roles
+            };
             const JWT_SECRET = process.env.JWT_SECRET;
-            const token = jsonwebtoken_1.default.sign({ jwtid: (0, uuid_1.v4)(), email: user.email, roles: user.roles }, JWT_SECRET, { algorithm: 'HS512', expiresIn: '1d' });
+            const options = {
+                algorithm: 'HS512', expiresIn: '1d'
+            };
+            const token = jsonwebtoken_1.default.sign(jwtPayload, JWT_SECRET, options);
             logger_1.default.info(`User logged in`);
             return token;
         }
