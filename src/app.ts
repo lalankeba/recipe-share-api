@@ -9,17 +9,24 @@ import notFoundHandler from './middleware/not-found-handler';
 import mongoose from 'mongoose';
 import logger from './config/logger';
 import authRoute from './routes/auth-route';
+import configurePassport from './config/passport-config';
+import passport from 'passport';
+import userRoute from './routes/user-route';
 
 const app = express();
 const port: number = parseInt(process.env.PORT || '3000', 10);
 const mongoUri: string = process.env.MONGO_URI || '';
 
+configurePassport(passport);
+
 app.use(limiter);
 app.use(requestLogger);
 app.use(express.json());
+app.use(passport.initialize());
 
 app.use('/', homeRoute);
 app.use('/auth', authRoute);
+app.use('/users', userRoute);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

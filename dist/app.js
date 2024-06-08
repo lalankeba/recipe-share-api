@@ -37,14 +37,20 @@ const not_found_handler_1 = __importDefault(require("./middleware/not-found-hand
 const mongoose_1 = __importDefault(require("mongoose"));
 const logger_1 = __importDefault(require("./config/logger"));
 const auth_route_1 = __importDefault(require("./routes/auth-route"));
+const passport_config_1 = __importDefault(require("./config/passport-config"));
+const passport_1 = __importDefault(require("passport"));
+const user_route_1 = __importDefault(require("./routes/user-route"));
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
 const mongoUri = process.env.MONGO_URI || '';
+(0, passport_config_1.default)(passport_1.default);
 app.use(rate_limit_1.default);
 app.use(request_logger_1.default);
 app.use(express_1.default.json());
+app.use(passport_1.default.initialize());
 app.use('/', home_route_1.default);
 app.use('/auth', auth_route_1.default);
+app.use('/users', user_route_1.default);
 app.use(not_found_handler_1.default);
 app.use(error_handler_1.default);
 const startServer = async () => {
