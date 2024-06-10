@@ -17,7 +17,9 @@ const UserModel = new mongoose_1.Schema({
     timestamps: true,
     toJSON: {
         transform: (doc, ret, options) => {
+            ret.id = ret._id;
             delete ret.password;
+            delete ret._id;
             return ret;
         }
     }

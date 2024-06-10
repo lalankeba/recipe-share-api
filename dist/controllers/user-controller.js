@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsers = void 0;
+exports.getUser = exports.getSelf = exports.getUsers = void 0;
 const userService = __importStar(require("../services/user-service"));
 const getUsers = async (req, res, next) => {
     try {
@@ -37,3 +37,28 @@ const getUsers = async (req, res, next) => {
     }
 };
 exports.getUsers = getUsers;
+const getSelf = async (req, res, next) => {
+    try {
+        const loggedInUser = req.user;
+        const loggedInUserId = loggedInUser.id;
+        const user = await userService.getSelf(loggedInUserId);
+        res.status(200).json(user);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getSelf = getSelf;
+const getUser = async (req, res, next) => {
+    try {
+        const loggedInUser = req.user;
+        const loggedInUserId = loggedInUser.id;
+        const userId = req.params.id;
+        const user = await userService.getUser(loggedInUserId, userId);
+        res.status(200).json(user);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getUser = getUser;

@@ -28,6 +28,9 @@ const config: Config = {
   // The test environment that will be used for testing
   testEnvironment: "node",
 
+  // print test details
+  verbose: true,
+
 };
 
 export default config;

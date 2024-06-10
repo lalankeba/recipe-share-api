@@ -39,6 +39,8 @@ describe('auth', () => {
             roles,
             toJSON: function() {
                 const { password, ...rest } = this;
+                rest.id = rest._id;
+                delete rest._id;
                 return rest;
             }
         };
@@ -50,7 +52,7 @@ describe('auth', () => {
 
         // Assert
         expect(registeredUser).toEqual(expect.any(Object));
-        expect(mongoose.Types.ObjectId.isValid(registeredUser._id)).toBe(true);
+        expect(mongoose.Types.ObjectId.isValid(registeredUser.id)).toBe(true);
         expect(registeredUser).toHaveProperty('gender');
         expect(registeredUser.gender).toEqual(Gender.Male);
         expect(registeredUser).toHaveProperty('roles');

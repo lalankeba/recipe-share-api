@@ -33,7 +33,7 @@ const register = async (firstName: string, lastName: string, gender: Gender, ema
 
     logger.info(`User created for ${firstName} ${lastName}`);
     
-    return { ...userDocument.toJSON() };
+    return userDocument.toJSON();
 }
 
 const login = async (email: string, password: string): Promise<string> => {
