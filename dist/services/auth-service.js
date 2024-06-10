@@ -31,7 +31,7 @@ const register = async (firstName, lastName, gender, email, password) => {
         password: hashedPassword
     });
     logger_1.default.info(`User created for ${firstName} ${lastName}`);
-    return { ...userDocument.toJSON() };
+    return userDocument.toJSON();
 };
 exports.register = register;
 const login = async (email, password) => {

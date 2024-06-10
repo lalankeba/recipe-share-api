@@ -1,4 +1,5 @@
 import AppError from "../errors/app-error";
+import { DisplayableUser } from "../interfaces/i-user";
 import userModel from "../models/user-model";
 
 const getUsers = async (page: number, size: number) => {
@@ -14,4 +15,24 @@ const getUsers = async (page: number, size: number) => {
     return users;
 }
 
-export { getUsers };
+const getSelf = async (loggedInUserId: string): Promise<DisplayableUser> => {
+    return getAnyUser(loggedInUserId);
+}
+
+const getUser = async (loggedInUserId: string, userId: string): Promise<DisplayableUser> => {
+    if (loggedInUserId === userId) {
+        throw new AppError(`Access denied. Use self API to get yourself`, 400);
+    }
+    return getAnyUser(userId);
+}
+
+const getAnyUser = async (userId: string): Promise<DisplayableUser> => {
+    const user = await userModel.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, createdAt: 1, updatedAt: 1 });
+    if (user) {
+        return user.toJSON();
+    } else {
+        throw new AppError(`User cannot be found for id: ${userId}`, 400);
+    }
+}
+
+export { getUsers, getSelf, getUser };

@@ -11,7 +11,7 @@ interface IUser {
 }
 
 interface DisplayableUser extends Omit<IUser, "password"> {
-    _id: string;
+    id: string;
 }
 
 export default IUser;

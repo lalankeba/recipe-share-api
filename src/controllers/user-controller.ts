@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import AppError from "../errors/app-error";
 import * as userService from '../services/user-service';
+import { UserDocument } from "../models/user-model";
 
 const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -14,4 +14,27 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-export { getUsers };
+const getSelf = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const loggedInUser = req.user as UserDocument;
+        const loggedInUserId = loggedInUser.id;
+        const user = await userService.getSelf(loggedInUserId);
+        res.status(200).json(user);
+    } catch (err) {
+        next(err);
+    }
+}
+
+const getUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const loggedInUser = req.user as UserDocument;
+        const loggedInUserId = loggedInUser.id;
+        const userId = req.params.id;
+        const user = await userService.getUser(loggedInUserId, userId);
+        res.status(200).json(user);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export { getUsers, getSelf, getUser };
