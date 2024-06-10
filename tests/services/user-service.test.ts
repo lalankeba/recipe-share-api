@@ -13,14 +13,19 @@ describe('auth', () => {
         jest.clearAllMocks(); // Clear mocks before each test
     });
 
+    const toJSON = function(this: any) {
+        const { password, _id, ...rest } = this;
+        return { id: _id.toString(), ...rest };
+    };
+
     it('Should get list of users', async () => {
         // Arrange
         const existingUsers = [
-            { _id: new mongoose.Types.ObjectId(), firstName: 'John', lastName: 'Doe', gender: Gender.Male, email: 'john@example.com', roles: [Role.User, Role.Admin] },
-            { _id: new mongoose.Types.ObjectId(), firstName: 'Lucy', lastName: 'Anne', gender: Gender.Female, email: 'lucy@example.com', roles: [Role.User] },
-            { _id: new mongoose.Types.ObjectId(), firstName: 'Tom', lastName: 'Kenut', gender: Gender.Male, email: 'tom@example.com', roles: [Role.User] },
-            { _id: new mongoose.Types.ObjectId(), firstName: 'Nate', lastName: 'Horton', gender: Gender.Custom, email: 'nate@example.com', roles: [Role.User, Role.Admin] },
-            { _id: new mongoose.Types.ObjectId(), firstName: 'Jane', lastName: 'Mannz', gender: Gender.Female, email: 'jane@example.com', roles: [Role.User] }
+            { _id: new mongoose.Types.ObjectId(), firstName: 'John', lastName: 'Doe', gender: Gender.Male, email: 'john@example.com', roles: [Role.User, Role.Admin], toJSON },
+            { _id: new mongoose.Types.ObjectId(), firstName: 'Lucy', lastName: 'Anne', gender: Gender.Female, email: 'lucy@example.com', roles: [Role.User], toJSON },
+            { _id: new mongoose.Types.ObjectId(), firstName: 'Tom', lastName: 'Kenut', gender: Gender.Male, email: 'tom@example.com', roles: [Role.User], toJSON },
+            { _id: new mongoose.Types.ObjectId(), firstName: 'Nate', lastName: 'Horton', gender: Gender.Custom, email: 'nate@example.com', roles: [Role.User, Role.Admin], toJSON },
+            { _id: new mongoose.Types.ObjectId(), firstName: 'Jane', lastName: 'Mannz', gender: Gender.Female, email: 'jane@example.com', roles: [Role.User], toJSON }
         ];
         const findMock = jest.fn().mockReturnThis();
         const skipMock = jest.fn().mockReturnThis();
@@ -39,7 +44,7 @@ describe('auth', () => {
         expect(Array.isArray(users)).toBe(true);
         expect(users.length).toBe(5);
         users.forEach((user) => {
-            expect(user).toHaveProperty('_id');
+            expect(user).toHaveProperty('id');
             expect(user).toHaveProperty('firstName');
             expect(user).toHaveProperty('lastName');
             expect(user).toHaveProperty('gender');
@@ -72,12 +77,7 @@ describe('auth', () => {
             gender: Gender.Female, 
             email: 'lucy@example.com', 
             roles: [Role.User],
-            toJSON: function() {
-                const { password, ...rest } = this;
-                rest.id = rest._id;
-                delete rest._id;
-                return rest;
-            }
+            toJSON
         };
         (userModel.findById as jest.Mock).mockResolvedValue(loggedInUser);
 
@@ -103,12 +103,7 @@ describe('auth', () => {
             gender: Gender.Female, 
             email: 'lucy@example.com', 
             roles: [Role.User],
-            toJSON: function() {
-                const { password, ...rest } = this;
-                rest.id = rest._id;
-                delete rest._id;
-                return rest;
-            }
+            toJSON
         };
         (userModel.findById as jest.Mock).mockResolvedValue(mockUser);
 

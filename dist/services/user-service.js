@@ -17,7 +17,7 @@ const getUsers = async (page, size) => {
         .find({}, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1 })
         .skip(page * size)
         .limit(size);
-    return users;
+    return users.map(user => user.toJSON());
 };
 exports.getUsers = getUsers;
 const getSelf = async (loggedInUserId) => {

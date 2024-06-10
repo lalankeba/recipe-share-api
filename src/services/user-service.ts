@@ -12,7 +12,8 @@ const getUsers = async (page: number, size: number) => {
         .find({}, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1 })
         .skip(page * size)
         .limit(size);
-    return users;
+
+    return users.map(user => user.toJSON());
 }
 
 const getSelf = async (loggedInUserId: string): Promise<DisplayableUser> => {
