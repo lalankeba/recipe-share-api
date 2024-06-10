@@ -62,4 +62,87 @@ describe('auth', () => {
             .rejects.toThrow(AppError);
     });
 
+    it('Should get logged in user', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const loggedInUser = { 
+            _id: loggedInUserId, 
+            firstName: 'Lucy', 
+            lastName: 'Anne', 
+            gender: Gender.Female, 
+            email: 'lucy@example.com', 
+            roles: [Role.User],
+            toJSON: function() {
+                const { password, ...rest } = this;
+                rest.id = rest._id;
+                delete rest._id;
+                return rest;
+            }
+        };
+        (userModel.findById as jest.Mock).mockResolvedValue(loggedInUser);
+
+        // Act
+        const user = await userService.getSelf(loggedInUserId.toString());
+
+        // Assert
+        expect(user).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(user.id)).toBe(true);
+        expect(user).toHaveProperty('roles');
+        expect(user.roles).toEqual([Role.User]);
+        expect(user).not.toHaveProperty('password');
+    });
+
+    it('Should get any user', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const id = new mongoose.Types.ObjectId();
+        const mockUser = { 
+            _id: id, 
+            firstName: 'Lucy', 
+            lastName: 'Anne', 
+            gender: Gender.Female, 
+            email: 'lucy@example.com', 
+            roles: [Role.User],
+            toJSON: function() {
+                const { password, ...rest } = this;
+                rest.id = rest._id;
+                delete rest._id;
+                return rest;
+            }
+        };
+        (userModel.findById as jest.Mock).mockResolvedValue(mockUser);
+
+        // Act
+        const user = await userService.getUser(loggedInUserId.toString(), id.toString());
+
+        // Assert
+        expect(user).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(user.id)).toBe(true);
+        expect(user).toHaveProperty('roles');
+        expect(user.roles).toEqual([Role.User]);
+        expect(user).not.toHaveProperty('password');
+    });
+
+    it('Should not get user with same logged in user id', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const id = loggedInUserId;
+
+        // Act & Assert
+        await expect(userService.getUser(loggedInUserId.toString(), id.toString()))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Should not get user with invalid user id', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const id = new mongoose.Types.ObjectId();
+
+        (userModel.findById as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(userService.getUser(loggedInUserId.toString(), id.toString()))
+            .rejects.toThrow(AppError);
+    });
+
 });
