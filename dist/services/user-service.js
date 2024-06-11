@@ -75,7 +75,7 @@ const updateUser = async (loggedInUserId, userId, firstName, lastName, gender, r
 };
 exports.updateUser = updateUser;
 const getAnyUser = async (userId) => {
-    const user = await user_model_1.default.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, createdAt: 1, updatedAt: 1 });
+    const user = await user_model_1.default.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, __v: 1, createdAt: 1, updatedAt: 1 });
     if (user) {
         return user.toJSON();
     }

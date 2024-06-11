@@ -93,7 +93,7 @@ const updateUser = async (loggedInUserId: string, userId: string, firstName: str
 }
 
 const getAnyUser = async (userId: string): Promise<DisplayableUser> => {
-    const user = await userModel.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, createdAt: 1, updatedAt: 1 });
+    const user = await userModel.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, __v: 1, createdAt: 1, updatedAt: 1 });
     if (user) {
         return user.toJSON();
     } else {
