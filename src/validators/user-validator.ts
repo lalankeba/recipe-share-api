@@ -1,4 +1,5 @@
 import Gender from "../enums/gender";
+import Role from "../enums/role";
 import AppError from "../errors/app-error"
 
 const validateUserDetails = (firstName: string, lastName: string, gender: Gender, email: string): boolean => {
@@ -51,4 +52,18 @@ const validateEmail = (email: string): boolean => {
     return true;
 }
 
-export { validateUserDetails, validateFirstName, validateLastName, validateGender, validateEmail }
+const validateRoles = (roles: Role[]): boolean => {
+    if (!roles || roles === null) {
+        throw new AppError('Roles required', 400);
+    }
+    return true;
+}
+
+const validateVersion = (__v: number): boolean => {
+    if (__v === null || __v === undefined) {
+        throw new AppError('Version required', 400);
+    }
+    return true
+}
+
+export { validateUserDetails, validateFirstName, validateLastName, validateGender, validateEmail, validateRoles, validateVersion }

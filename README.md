@@ -15,6 +15,12 @@ This project is built with Node.js, Express, and MongoDB. It provides a simple A
 
 - **User Registration & Login**: Users can register for an account and log in to access their profile.
 - **JWT Authentication**: Secure access to the API using JSON Web Tokens.
+- **User Self-Management**: Any user can view and update their own profile information.
+- **Admin Privileges**:
+  - View all users. Supports pagination.
+  - Change user roles.
+- **Password Policies**: Enforced password complexity requirements.
+- **Token Expiration**: Implemented token expiration for enhanced security.
 
 ## Installation
 
@@ -50,6 +56,11 @@ npm test
 - `GET /`: Returns welcome message
 - `POST /auth/register`: Register a new user.
 - `POST /auth/login`: All users login.
+- `GET /users`: View all users. (Needs Admin permissions)
+- `GET /users/user`: View logged in user.
+- `GET /users/user/:id`: View any user. (Needs Admin permissions)
+- `PUT /users/user`: Update logged in user.
+- `PUT /users/user/:id`: Update any user. (Needs Admin permissions)
 
 
 ## License
@@ -69,7 +80,7 @@ curl http://localhost:3000/home
 
 ### Register user
 ```
-curl http://localhost:3000/auth/register/ -H 'Content-Type: application/json' \
+curl http://localhost:3000/auth/register -H 'Content-Type: application/json' \
 -d '{
     "firstName": "John",
     "lastName":"Doe",
@@ -81,9 +92,53 @@ curl http://localhost:3000/auth/register/ -H 'Content-Type: application/json' \
 
 ### Login user
 ```
-curl http://localhost:3000/auth/login/ -H 'Content-Type: application/json' \
+curl http://localhost:3000/auth/login -H 'Content-Type: application/json' \
 -d '{ 
     "email": "john@example.com", 
     "password": "Abcd@1234" 
+}'
+```
+
+### View list of users
+```
+curl http://localhost:3000/users -H 'Authorization: Bearer <token>'
+```
+For more information, specify page and size parameters.
+```
+curl http://localhost:3000/users?page=2&size=10 -H 'Authorization: Bearer <token>' | jq .
+```
+
+### View logged in user
+```
+curl http://localhost:3000/users/user -H 'Authorization: Bearer <token>'
+```
+
+### View any user
+```
+curl http://localhost:3000/users/user/:id -H 'Authorization: Bearer <token>'
+```
+
+### Update logged in user
+```
+curl -X PUT http://localhost:3000/users/user -H 'Content-Type: application/json' \
+-H 'Authorization: Bearer <token>' \
+-d '{ 
+    "firstName": "Mark", 
+    "lastName":"Jerom", 
+    "gender":"MALE", 
+    "__v":0 
+}'
+```
+
+### Update any user
+```
+curl -X PUT http://localhost:3000/users/user/:id -H 'Content-Type: application/json' \
+-H 'Authorization: Bearer <token>' \
+-d '{ 
+    "firstName": "Kevin", 
+    "lastName":"Rozen", 
+    "gender":"MALE", 
+    "roles":["ADMIN", "USER"], 
+    "__v":0 
 }'
 ```

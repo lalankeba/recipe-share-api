@@ -5,7 +5,7 @@ import Role from '../enums/role';
 
 interface UserDocument extends IUser, Document {}
 
-const UserModel = new Schema<UserDocument>(
+const userSchema = new Schema<UserDocument>(
     {
         firstName: { type: String, required: true },
         lastName: { type: String, required: true },
@@ -23,9 +23,12 @@ const UserModel = new Schema<UserDocument>(
           delete ret._id;
           return ret;
         }
-      }
+      },
+      versionKey: '__v'
     }
 );
 
-export default model<UserDocument>('User', UserModel);
+const userModel = model<UserDocument>('User', userSchema);
+
+export default userModel;
 export { UserDocument };
