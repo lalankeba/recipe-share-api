@@ -272,7 +272,7 @@ describe('auth', () => {
             );
     });
 
-    const invalidUserDetails: [string, string, Gender, number | undefined][] = [
+    const invalidSelfUserDetails: [string, string, Gender, number | undefined][] = [
         ['', 'Doe', Gender.Male, 0], // no first fname
         ['J0hn', 'Doe', Gender.Male, 0], // digit at first name
         ['Joh#', 'Doe', Gender.Male, 0], // symbol at first name
@@ -283,12 +283,191 @@ describe('auth', () => {
         ['John', 'Doe', 'invalidGender' as Gender, 0], // invalid gender
         ['John', 'Doe', Gender.Male, undefined], // invalid version
     ];
-    test.each(invalidUserDetails)('Should not update a user with invalid details firstName:%s, lastName:%s, gender:%s, version: %s', async (firstName, lastName, gender, version) => {
+    test.each(invalidSelfUserDetails)('Should not update a user with invalid details firstName:%s, lastName:%s, gender:%s, version: %s', async (firstName, lastName, gender, version) => {
         // Arrange
         const loggedInUserId = new mongoose.Types.ObjectId();
     
         // Act & Assert
         await expect(userService.updateSelf(loggedInUserId.toString(), firstName, lastName, gender, version as number))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Should update user', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const userId = new mongoose.Types.ObjectId();
+        const firstName = 'John';
+        const lastName = 'Doe';
+        const gender = Gender.Male;
+        let version = 0;
+        const email = 'lisa@example.com';
+        const roles = [Role.User];
+
+        const preUpdatedUserMock = { 
+            _id: userId, 
+            firstName: 'Lisa', 
+            lastName: 'Mary', 
+            gender: Gender.Female, 
+            email, 
+            roles,
+            __v: version,
+            toJSON
+        };
+
+        const updatedUserMock = { 
+            _id: userId, 
+            firstName, 
+            lastName, 
+            gender, 
+            email, 
+            roles,
+            __v: version + 1,
+            toJSON
+        };
+        (userModel.findById as jest.Mock).mockResolvedValue(preUpdatedUserMock);
+        (userModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedUserMock);
+
+        // Act
+        const updatedUser: DisplayableUser = await userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version);
+
+        // Assert
+        expect(updatedUser).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(updatedUser.id)).toBe(true);
+        expect(updatedUser).toHaveProperty('gender');
+        expect(updatedUser.gender).toEqual(gender);
+        expect(updatedUser).toHaveProperty('email');
+        expect(updatedUser.email).toEqual(email);
+        expect(updatedUser).toHaveProperty('roles');
+        expect(updatedUser.roles).toEqual(roles);
+        expect(updatedUser).toHaveProperty('__v');
+        expect(updatedUser.__v).toEqual(version + 1);
+        expect(updatedUser).not.toHaveProperty('password');
+    });
+
+    it('Should not update a logged in user with update user API', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const userId = loggedInUserId;
+        const firstName = 'John';
+        const lastName = 'Doe';
+        const gender = Gender.Male;
+        const roles = [Role.User];
+        let version = 0;
+
+        // Act & Assert
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(AppError);
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 401 })
+            );
+    });
+
+    it('Should not update a user with invalid id', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const userId = new mongoose.Types.ObjectId();
+        const firstName = 'John';
+        const lastName = 'Doe';
+        const gender = Gender.Male;
+        const roles = [Role.User];
+        let version = 0;
+
+        (userModel.findById as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(AppError);
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 400 })
+            );
+    });
+
+    it('Should not update a user with invalid version', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const userId = new mongoose.Types.ObjectId();
+        const firstName = 'John';
+        const lastName = 'Doe';
+        const gender = Gender.Male;
+        const roles = [Role.User];
+        let version = 0;
+
+        const existingUserMock = { 
+            _id: loggedInUserId, 
+            firstName: 'Lisa', 
+            lastName, 
+            gender, 
+            email: 'john@example.com', 
+            roles: [Role.User],
+            __v: version + 1,
+            toJSON
+        };
+
+        (userModel.findById as jest.Mock).mockResolvedValue(existingUserMock);
+
+        // Act & Assert
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(AppError);
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 409 })
+            );
+    });
+
+    it('Should not update a user when database error occurs', async () => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const userId = new mongoose.Types.ObjectId();
+        const firstName = 'John';
+        const lastName = 'Doe';
+        const gender = Gender.Male;
+        const roles = [Role.User];
+        let version = 0;
+
+        const existingUserMock = { 
+            _id: loggedInUserId, 
+            firstName: 'Lisa', 
+            lastName, 
+            gender, 
+            email: 'john@example.com', 
+            roles: [Role.User],
+            __v: version,
+            toJSON
+        };
+
+        (userModel.findById as jest.Mock).mockResolvedValue(existingUserMock);
+        (userModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(AppError);
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 500 })
+            );
+    });
+
+    const invalidUserDetails: [string, string, Gender, Role[] | undefined, number | undefined][] = [
+        ['', 'Doe', Gender.Male, [Role.User], 0], // no first fname
+        ['J0hn', 'Doe', Gender.Male, [Role.User], 0], // digit at first name
+        ['Joh#', 'Doe', Gender.Male, [Role.User], 0], // symbol at first name
+        ['John', '', Gender.Male, [Role.User], 0], // no last name
+        ['John', 'D0e', Gender.Male, [Role.User], 0], // digit at last name
+        ['John', 'Do3', Gender.Male, [Role.User], 0], // symbol at last name
+        ['John', 'Doe', 'Male' as Gender, [Role.User], 0], // invalid word male
+        ['John', 'Doe', 'invalidGender' as Gender, [Role.User], 0], // invalid gender
+        ['John', 'Doe', Gender.Male, undefined, 0], // invalid roles
+        ['John', 'Doe', Gender.Male, [Role.User], undefined], // invalid version
+    ];
+    test.each(invalidUserDetails)('Should not update a user with invalid details firstName:%s, lastName:%s, gender:%s, roles: %s, version: %s', async (firstName, lastName, gender, roles, version) => {
+        // Arrange
+        const loggedInUserId = new mongoose.Types.ObjectId();
+        const userId = new mongoose.Types.ObjectId();
+    
+        // Act & Assert
+        await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles as Role[], version as number))
             .rejects.toThrow(AppError);
     });
 

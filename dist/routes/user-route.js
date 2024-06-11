@@ -13,4 +13,5 @@ userRoute.get('/', authenticate_jwt_1.default, (0, check_roles_1.default)([role_
 userRoute.get('/user', authenticate_jwt_1.default, (0, check_roles_1.default)([role_1.default.Admin, role_1.default.User]), user_controller_1.getSelf);
 userRoute.get('/user/:id', authenticate_jwt_1.default, (0, check_roles_1.default)([role_1.default.Admin]), user_controller_1.getUser);
 userRoute.put('/user', authenticate_jwt_1.default, (0, check_roles_1.default)([role_1.default.Admin, role_1.default.User]), user_controller_1.updateSelf);
+userRoute.put('/user/:id', authenticate_jwt_1.default, (0, check_roles_1.default)([role_1.default.Admin]), user_controller_1.updateUser);
 exports.default = userRoute;

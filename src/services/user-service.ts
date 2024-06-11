@@ -1,8 +1,9 @@
 import Gender from "../enums/gender";
+import Role from "../enums/role";
 import AppError from "../errors/app-error";
 import { DisplayableUser } from "../interfaces/i-user";
 import userModel, { UserDocument } from "../models/user-model";
-import { validateFirstName, validateGender, validateLastName, validateVersion } from "../validators/user-validator";
+import { validateFirstName, validateGender, validateLastName, validateRoles, validateVersion } from "../validators/user-validator";
 
 const getUsers = async (page: number, size: number) => {
     if (page < 0) {
@@ -38,7 +39,7 @@ const updateSelf = async (loggedInUserId: string, firstName: string, lastName: s
     const userDoc: UserDocument | null = await userModel.findById(loggedInUserId);
 
     if (!userDoc) {
-        throw new AppError(`Cannot find the user. Not able to update user for id: ${loggedInUserId}`, 400);
+        throw new AppError(`Cannot find the user. Unable to update user for id: ${loggedInUserId}`, 400);
     }
 
     if (userDoc.__v !== __v) {
@@ -58,6 +59,39 @@ const updateSelf = async (loggedInUserId: string, firstName: string, lastName: s
     return updatedUser.toJSON();
 }
 
+const updateUser = async (loggedInUserId: string, userId: string, firstName: string, lastName: string, gender: Gender, roles: Role[], __v: number): Promise<DisplayableUser> => {
+    if (loggedInUserId === userId) {
+        throw new AppError(`Access denied. Use self API to update yourself`, 401);
+    }
+    validateFirstName(firstName);
+    validateLastName(lastName);
+    validateGender(gender);
+    validateRoles(roles);
+    validateVersion(__v);
+
+    const userDoc: UserDocument | null = await userModel.findById(userId);
+
+    if (!userDoc) {
+        throw new AppError(`Cannot find the user. Unable to update user for id: ${userId}`, 400);
+    }
+
+    if (userDoc.__v !== __v) {
+        throw new AppError(`User has been modified by another process. Please refresh and try again.`, 409);
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        { $set: { firstName, lastName, gender, roles }, $inc: { __v: 1 } },
+        { new: true }
+    );
+    
+    if (!updatedUser) {
+        throw new AppError('Failed to update user document.', 500);
+    }
+
+    return updatedUser.toJSON();
+}
+
 const getAnyUser = async (userId: string): Promise<DisplayableUser> => {
     const user = await userModel.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, createdAt: 1, updatedAt: 1 });
     if (user) {
@@ -67,4 +101,4 @@ const getAnyUser = async (userId: string): Promise<DisplayableUser> => {
     }
 }
 
-export { getUsers, getSelf, getUser, updateSelf };
+export { getUsers, getSelf, getUser, updateSelf, updateUser };

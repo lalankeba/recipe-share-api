@@ -49,4 +49,17 @@ const updateSelf = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-export { getUsers, getSelf, getUser, updateSelf };
+const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const loggedInUser = req.user as UserDocument;
+        const loggedInUserId = loggedInUser.id;
+        const userId = req.params.id;
+        const { firstName, lastName, gender, roles, __v } = req.body;
+        const updatedUser = await userService.updateUser(loggedInUserId, userId, firstName, lastName, gender, roles, __v);
+        res.status(200).json(updatedUser);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export { getUsers, getSelf, getUser, updateSelf, updateUser };

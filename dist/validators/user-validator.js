@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateVersion = exports.validateEmail = exports.validateGender = exports.validateLastName = exports.validateFirstName = exports.validateUserDetails = void 0;
+exports.validateVersion = exports.validateRoles = exports.validateEmail = exports.validateGender = exports.validateLastName = exports.validateFirstName = exports.validateUserDetails = void 0;
 const gender_1 = __importDefault(require("../enums/gender"));
 const app_error_1 = __importDefault(require("../errors/app-error"));
 const validateUserDetails = (firstName, lastName, gender, email) => {
@@ -57,6 +57,13 @@ const validateEmail = (email) => {
     return true;
 };
 exports.validateEmail = validateEmail;
+const validateRoles = (roles) => {
+    if (!roles || roles === null) {
+        throw new app_error_1.default('Roles required', 400);
+    }
+    return true;
+};
+exports.validateRoles = validateRoles;
 const validateVersion = (__v) => {
     if (__v === null || __v === undefined) {
         throw new app_error_1.default('Version required', 400);
