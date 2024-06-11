@@ -1,6 +1,8 @@
+import Gender from "../enums/gender";
 import AppError from "../errors/app-error";
 import { DisplayableUser } from "../interfaces/i-user";
-import userModel from "../models/user-model";
+import userModel, { UserDocument } from "../models/user-model";
+import { validateFirstName, validateGender, validateLastName, validateVersion } from "../validators/user-validator";
 
 const getUsers = async (page: number, size: number) => {
     if (page < 0) {
@@ -27,6 +29,35 @@ const getUser = async (loggedInUserId: string, userId: string): Promise<Displaya
     return getAnyUser(userId);
 }
 
+const updateSelf = async (loggedInUserId: string, firstName: string, lastName: string, gender: Gender, __v: number): Promise<DisplayableUser> => {
+    validateFirstName(firstName);
+    validateLastName(lastName);
+    validateGender(gender);
+    validateVersion(__v);
+
+    const userDoc: UserDocument | null = await userModel.findById(loggedInUserId);
+
+    if (!userDoc) {
+        throw new AppError(`Cannot find the user. Not able to update user for id: ${loggedInUserId}`, 400);
+    }
+
+    if (userDoc.__v !== __v) {
+        throw new AppError(`User has been modified by another process. Please refresh and try again.`, 409);
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+        loggedInUserId,
+        { $set: { firstName, lastName, gender }, $inc: { __v: 1 } },
+        { new: true }
+    );
+    
+    if (!updatedUser) {
+        throw new AppError('Failed to update user document.', 500);
+    }
+
+    return updatedUser.toJSON();
+}
+
 const getAnyUser = async (userId: string): Promise<DisplayableUser> => {
     const user = await userModel.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, createdAt: 1, updatedAt: 1 });
     if (user) {
@@ -36,4 +67,4 @@ const getAnyUser = async (userId: string): Promise<DisplayableUser> => {
     }
 }
 
-export { getUsers, getSelf, getUser };
+export { getUsers, getSelf, getUser, updateSelf };

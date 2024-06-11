@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUser = exports.getSelf = exports.getUsers = void 0;
+exports.updateSelf = exports.getUser = exports.getSelf = exports.getUsers = void 0;
 const app_error_1 = __importDefault(require("../errors/app-error"));
 const user_model_1 = __importDefault(require("../models/user-model"));
+const user_validator_1 = require("../validators/user-validator");
 const getUsers = async (page, size) => {
     if (page < 0) {
         throw new app_error_1.default(`The page: ${page} parameter must be 0 or a positive integer`, 400);
@@ -31,6 +32,25 @@ const getUser = async (loggedInUserId, userId) => {
     return getAnyUser(userId);
 };
 exports.getUser = getUser;
+const updateSelf = async (loggedInUserId, firstName, lastName, gender, __v) => {
+    (0, user_validator_1.validateFirstName)(firstName);
+    (0, user_validator_1.validateLastName)(lastName);
+    (0, user_validator_1.validateGender)(gender);
+    (0, user_validator_1.validateVersion)(__v);
+    const userDoc = await user_model_1.default.findById(loggedInUserId);
+    if (!userDoc) {
+        throw new app_error_1.default(`Cannot find the user. Not able to update user for id: ${loggedInUserId}`, 400);
+    }
+    if (userDoc.__v !== __v) {
+        throw new app_error_1.default(`User has been modified by another process. Please refresh and try again.`, 409);
+    }
+    const updatedUser = await user_model_1.default.findByIdAndUpdate(loggedInUserId, { $set: { firstName, lastName, gender }, $inc: { __v: 1 } }, { new: true });
+    if (!updatedUser) {
+        throw new app_error_1.default('Failed to update user document.', 500);
+    }
+    return updatedUser.toJSON();
+};
+exports.updateSelf = updateSelf;
 const getAnyUser = async (userId) => {
     const user = await user_model_1.default.findById(userId, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1, createdAt: 1, updatedAt: 1 });
     if (user) {

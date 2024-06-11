@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const gender_1 = __importDefault(require("../enums/gender"));
 const role_1 = __importDefault(require("../enums/role"));
-const UserModel = new mongoose_1.Schema({
+const userSchema = new mongoose_1.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     gender: { type: String, enum: Object.values(gender_1.default), required: true },
@@ -22,6 +22,8 @@ const UserModel = new mongoose_1.Schema({
             delete ret._id;
             return ret;
         }
-    }
+    },
+    versionKey: '__v'
 });
-exports.default = (0, mongoose_1.model)('User', UserModel);
+const userModel = (0, mongoose_1.model)('User', userSchema);
+exports.default = userModel;

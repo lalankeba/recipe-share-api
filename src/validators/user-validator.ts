@@ -51,4 +51,11 @@ const validateEmail = (email: string): boolean => {
     return true;
 }
 
-export { validateUserDetails, validateFirstName, validateLastName, validateGender, validateEmail }
+const validateVersion = (__v: number): boolean => {
+    if (__v === null || __v === undefined) {
+        throw new AppError('Version required', 400);
+    }
+    return true
+}
+
+export { validateUserDetails, validateFirstName, validateLastName, validateGender, validateEmail, validateVersion }
