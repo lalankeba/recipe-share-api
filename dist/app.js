@@ -40,10 +40,17 @@ const auth_route_1 = __importDefault(require("./routes/auth-route"));
 const passport_config_1 = __importDefault(require("./config/passport-config"));
 const passport_1 = __importDefault(require("passport"));
 const user_route_1 = __importDefault(require("./routes/user-route"));
+const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
 const mongoUri = process.env.MONGO_URI || '';
+const corsOptions = {
+    origin: "*",
+    optionsSuccessStatus: 200,
+    credentials: true
+};
 (0, passport_config_1.default)(passport_1.default);
+app.use((0, cors_1.default)(corsOptions));
 app.use(rate_limit_1.default);
 app.use(request_logger_1.default);
 app.use(express_1.default.json());
