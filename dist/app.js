@@ -41,6 +41,7 @@ const passport_config_1 = __importDefault(require("./config/passport-config"));
 const passport_1 = __importDefault(require("passport"));
 const user_route_1 = __importDefault(require("./routes/user-route"));
 const cors_1 = __importDefault(require("cors"));
+const category_route_1 = __importDefault(require("./routes/category-route"));
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
 const mongoUri = process.env.MONGO_URI || '';
@@ -58,6 +59,7 @@ app.use(passport_1.default.initialize());
 app.use('/', home_route_1.default);
 app.use('/auth', auth_route_1.default);
 app.use('/users', user_route_1.default);
+app.use('/categories', category_route_1.default);
 app.use(not_found_handler_1.default);
 app.use(error_handler_1.default);
 const startServer = async () => {

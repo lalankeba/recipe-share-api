@@ -59,11 +59,4 @@ const validateRoles = (roles: Role[]): boolean => {
     return true;
 }
 
-const validateVersion = (__v: number): boolean => {
-    if (__v === null || __v === undefined) {
-        throw new AppError('Version required', 400);
-    }
-    return true
-}
-
-export { validateUserDetails, validateFirstName, validateLastName, validateGender, validateEmail, validateRoles, validateVersion }
+export { validateUserDetails, validateFirstName, validateLastName, validateGender, validateEmail, validateRoles }

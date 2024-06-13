@@ -13,6 +13,7 @@ import configurePassport from './config/passport-config';
 import passport from 'passport';
 import userRoute from './routes/user-route';
 import cors from 'cors';
+import categoryRoute from './routes/category-route';
 
 const app = express();
 const port: number = parseInt(process.env.PORT || '3000', 10);
@@ -35,6 +36,7 @@ app.use(passport.initialize());
 app.use('/', homeRoute);
 app.use('/auth', authRoute);
 app.use('/users', userRoute);
+app.use('/categories', categoryRoute);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
