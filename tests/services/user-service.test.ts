@@ -8,7 +8,7 @@ import { DisplayableUser } from '../../src/interfaces/i-user';
 
 jest.mock('../../src/models/user-model');
 
-describe('auth', () => {
+describe('user', () => {
 
     beforeEach(() => {
         jest.clearAllMocks(); // Clear mocks before each test

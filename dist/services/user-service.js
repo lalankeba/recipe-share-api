@@ -6,14 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateUser = exports.updateSelf = exports.getUser = exports.getSelf = exports.getUsers = void 0;
 const app_error_1 = __importDefault(require("../errors/app-error"));
 const user_model_1 = __importDefault(require("../models/user-model"));
+const common_validator_1 = require("../validators/common-validator");
 const user_validator_1 = require("../validators/user-validator");
 const getUsers = async (page, size) => {
-    if (page < 0) {
-        throw new app_error_1.default(`The page: ${page} parameter must be 0 or a positive integer`, 400);
-    }
-    else if (size < 1) {
-        throw new app_error_1.default(`The size: ${size} parameter must be a positive integer`, 400);
-    }
+    (0, common_validator_1.validatePaginationDetails)(page, size);
     const users = await user_model_1.default
         .find({}, { firstName: 1, lastName: 1, gender: 1, email: 1, roles: 1 })
         .skip(page * size)
@@ -36,7 +32,7 @@ const updateSelf = async (loggedInUserId, firstName, lastName, gender, __v) => {
     (0, user_validator_1.validateFirstName)(firstName);
     (0, user_validator_1.validateLastName)(lastName);
     (0, user_validator_1.validateGender)(gender);
-    (0, user_validator_1.validateVersion)(__v);
+    (0, common_validator_1.validateVersion)(__v);
     const userDoc = await user_model_1.default.findById(loggedInUserId);
     if (!userDoc) {
         throw new app_error_1.default(`Cannot find the user. Unable to update user for id: ${loggedInUserId}`, 400);
@@ -59,7 +55,7 @@ const updateUser = async (loggedInUserId, userId, firstName, lastName, gender, r
     (0, user_validator_1.validateLastName)(lastName);
     (0, user_validator_1.validateGender)(gender);
     (0, user_validator_1.validateRoles)(roles);
-    (0, user_validator_1.validateVersion)(__v);
+    (0, common_validator_1.validateVersion)(__v);
     const userDoc = await user_model_1.default.findById(userId);
     if (!userDoc) {
         throw new app_error_1.default(`Cannot find the user. Unable to update user for id: ${userId}`, 400);
