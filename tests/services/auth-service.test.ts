@@ -73,9 +73,6 @@ describe('auth', () => {
         ['John', 'Doe', Gender.Male, 'john#example.com', 'Abcd@1234'], // invalid email
     ];
     test.each(invalidUserDetails)('Should not register a new user with invalid details firstName:%s, lastName:%s, gender:%s, email:%s', async (firstName, lastName, gender, email, password) => {
-        // Arrange
-        (userModel.findOne as jest.Mock).mockResolvedValue(undefined);
-    
         // Act & Assert
         await expect(authService.register(firstName, lastName, gender, email, password))
             .rejects.toThrow(AppError);
