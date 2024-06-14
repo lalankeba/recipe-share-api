@@ -75,4 +75,67 @@ describe('category', () => {
             );
     });
 
+    it('Should get list of categories', async () => {
+        // Arrange
+        const existingCategories = [
+            { _id: new mongoose.Types.ObjectId(), description: 'Curry', toJSON },
+            { _id: new mongoose.Types.ObjectId(), description: 'Dessert', toJSON },
+            { _id: new mongoose.Types.ObjectId(), description: 'Drink', toJSON },
+            { _id: new mongoose.Types.ObjectId(), description: 'Starter', toJSON },
+            { _id: new mongoose.Types.ObjectId(), description: 'Soup', toJSON },
+            { _id: new mongoose.Types.ObjectId(), description: 'Pudding', toJSON },
+        ];
+        const findMock = jest.fn().mockReturnThis();
+        const skipMock = jest.fn().mockReturnThis();
+        const limitMock = (categoryModel.create as jest.Mock).mockResolvedValue(existingCategories);
+
+        categoryModel.find = findMock;
+        (categoryModel.find as jest.Mock).mockImplementation(() => ({
+            skip: skipMock,
+            limit: limitMock,
+        }));
+
+        // Act
+        const categories = await categoryService.getCategories(0, existingCategories.length);
+
+        // Assert
+        expect(Array.isArray(categories)).toBe(true);
+        expect(categories.length).toBe(existingCategories.length);
+        existingCategories.forEach((category) => {
+            expect(category).toHaveProperty('description');
+        });
+    });
+
+    it('Should get a category by id', async () => {
+        // Arrange
+        const id = new mongoose.Types.ObjectId();
+        const description = 'Curry';
+        const mockCategory = { 
+            _id: id, 
+            description,
+            toJSON
+        };
+        (categoryModel.findById as jest.Mock).mockResolvedValue(mockCategory);
+
+        // Act
+        const category = await categoryService.getCategory(id.toString());
+
+        // Assert
+        expect(category).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(category.id)).toBe(true);
+        expect(category).toHaveProperty('description');
+        expect(category.description).toEqual(description);
+    });
+
+    it('Should not get category with invalid category id', async () => {
+        // Arrange
+        const id = new mongoose.Types.ObjectId();
+
+        (categoryModel.findById as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(categoryService.getCategory(id.toString()))
+            .rejects.toThrow(AppError);
+    });
+
 });
