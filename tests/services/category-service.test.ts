@@ -138,4 +138,104 @@ describe('category', () => {
             .rejects.toThrow(AppError);
     });
 
+    it('Should update an existing category', async () => {
+        // Arrange
+        const categoryId = new mongoose.Types.ObjectId();
+        const description = 'Soup';
+        let version = 0;
+
+        const existingCategoryMock = { 
+            _id: categoryId,
+            description: 'Curry',
+            __v: version,
+            toJSON
+        };
+
+        const updatedCategoryMock = { 
+            _id: categoryId,
+            description,
+            __v: version + 1,
+            toJSON
+        };
+        (categoryModel.findById as jest.Mock).mockResolvedValue(existingCategoryMock);
+        (categoryModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedCategoryMock);
+
+        // Act
+        const updatedCategory: DisplayableCategory = await categoryService.updateCategory(categoryId.toString(), description, version);
+
+        // Assert
+        expect(updatedCategory).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(updatedCategory.id)).toBe(true);
+        expect(updatedCategory).toHaveProperty('description');
+        expect(updatedCategory.description).toEqual(description);
+        expect(updatedCategory).toHaveProperty('__v');
+        expect(updatedCategory.__v).toEqual(version + 1);
+    });
+
+    it('Should not update a non existing category', async () => {
+        // Arrange
+        const categoryId = new mongoose.Types.ObjectId();
+        const description = 'Dessert';
+        let version = 0;
+
+        (categoryModel.findById as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(AppError);
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 400 })
+            );
+    });
+
+    it('Should not update an existing category with invalid version', async () => {
+        // Arrange
+        const categoryId = new mongoose.Types.ObjectId();
+        const description = 'Drink';
+        let version = 0;
+
+        const existingCategoryMock = { 
+            _id: categoryId,
+            description: 'Meal',
+            __v: version + 1,
+            toJSON
+        };
+        
+        (categoryModel.findById as jest.Mock).mockResolvedValue(existingCategoryMock);
+
+        // Act & Assert
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(AppError);
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 409 })
+            );
+    });
+
+    it('Should not update a logged in user when database error occurs', async () => {
+        // Arrange
+        const categoryId = new mongoose.Types.ObjectId();
+        const description = 'Soup';
+        let version = 0;
+
+        const existingUserMock = { 
+            _id: categoryId, 
+            description: 'Starter',
+            __v: version,
+            toJSON
+        };
+        
+        (categoryModel.findById as jest.Mock).mockResolvedValue(existingUserMock);
+        (categoryModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(AppError);
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 500 })
+            );
+    });
+
 });
