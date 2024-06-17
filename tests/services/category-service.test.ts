@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import categoryModel from '../../src/models/category-model';
+import categoryModel, { CategoryDocument } from '../../src/models/category-model';
 import { DisplayableCategory } from "../../src/interfaces/i-category";
 import * as categoryService from '../../src/services/category-service';
 import AppError from "../../src/errors/app-error";
@@ -12,7 +12,7 @@ describe('category', () => {
         jest.clearAllMocks(); // Clear mocks before each test
     });
 
-    const toJSON = function(this: any) {
+    const toJSON = function(this: CategoryDocument) {
         const { _id, ...rest } = this;
         return { ...rest, id: _id };
     };
@@ -32,7 +32,6 @@ describe('category', () => {
 
         // Act
         const createdCategory: DisplayableCategory = await categoryService.createCategory(description);
-        console.log(createdCategory);
 
         // Assert
         expect(createdCategory).toEqual(expect.any(Object));
@@ -142,7 +141,7 @@ describe('category', () => {
         // Arrange
         const categoryId = new mongoose.Types.ObjectId();
         const description = 'Soup';
-        let version = 0;
+        const version = 0;
 
         const existingCategoryMock = { 
             _id: categoryId,
@@ -176,7 +175,7 @@ describe('category', () => {
         // Arrange
         const categoryId = new mongoose.Types.ObjectId();
         const description = 'Dessert';
-        let version = 0;
+        const version = 0;
 
         (categoryModel.findById as jest.Mock).mockResolvedValue(undefined);
 
@@ -193,7 +192,7 @@ describe('category', () => {
         // Arrange
         const categoryId = new mongoose.Types.ObjectId();
         const description = 'Drink';
-        let version = 0;
+        const version = 0;
 
         const existingCategoryMock = { 
             _id: categoryId,
@@ -217,7 +216,7 @@ describe('category', () => {
         // Arrange
         const categoryId = new mongoose.Types.ObjectId();
         const description = 'Soup';
-        let version = 0;
+        const version = 0;
 
         const existingUserMock = { 
             _id: categoryId, 

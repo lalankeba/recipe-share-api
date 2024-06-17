@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import logger from '../config/logger';
 
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-    let ipAddress = getIpAddress(req);
+    const ipAddress = getIpAddress(req);
     logger.info(`From: ${ipAddress} ${req.method} ${req.url}`);
     next();
 }
