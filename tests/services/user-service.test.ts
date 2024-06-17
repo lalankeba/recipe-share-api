@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import * as userService from '../../src/services/user-service';
-import userModel from '../../src/models/user-model';
+import userModel, { UserDocument } from '../../src/models/user-model';
 import AppError from '../../src/errors/app-error';
 import Role from '../../src/enums/role';
 import Gender from '../../src/enums/gender';
@@ -14,9 +14,9 @@ describe('user', () => {
         jest.clearAllMocks(); // Clear mocks before each test
     });
 
-    const toJSON = function(this: any) {
+    const toJSON = function(this: UserDocument) {
         const { password, _id, ...rest } = this;
-        return { id: _id.toString(), ...rest };
+        return { ...rest, id: _id };
     };
 
     it('Should get list of users', async () => {
@@ -147,7 +147,7 @@ describe('user', () => {
         const firstName = 'John';
         const lastName = 'Doe';
         const gender = Gender.Male;
-        let version = 0;
+        const version = 0;
         const email = 'lisa@example.com';
         const roles = [Role.User];
 
@@ -198,7 +198,7 @@ describe('user', () => {
         const firstName = 'John';
         const lastName = 'Doe';
         const gender = Gender.Male;
-        let version = 0;
+        const version = 0;
 
         (userModel.findById as jest.Mock).mockResolvedValue(undefined);
 
@@ -217,7 +217,7 @@ describe('user', () => {
         const firstName = 'John';
         const lastName = 'Doe';
         const gender = Gender.Male;
-        let version = 0;
+        const version = 0;
 
         const existingUserMock = { 
             _id: loggedInUserId, 
@@ -247,7 +247,7 @@ describe('user', () => {
         const firstName = 'John';
         const lastName = 'Doe';
         const gender = Gender.Male;
-        let version = 0;
+        const version = 0;
 
         const existingUserMock = { 
             _id: loggedInUserId, 
@@ -299,7 +299,7 @@ describe('user', () => {
         const firstName = 'John';
         const lastName = 'Doe';
         const gender = Gender.Male;
-        let version = 0;
+        const version = 0;
         const email = 'lisa@example.com';
         const roles = [Role.User];
 
@@ -352,7 +352,7 @@ describe('user', () => {
         const lastName = 'Doe';
         const gender = Gender.Male;
         const roles = [Role.User];
-        let version = 0;
+        const version = 0;
 
         // Act & Assert
         await expect(userService.updateUser(loggedInUserId.toString(), userId.toString(), firstName, lastName, gender, roles, version))
@@ -371,7 +371,7 @@ describe('user', () => {
         const lastName = 'Doe';
         const gender = Gender.Male;
         const roles = [Role.User];
-        let version = 0;
+        const version = 0;
 
         (userModel.findById as jest.Mock).mockResolvedValue(undefined);
 
@@ -392,7 +392,7 @@ describe('user', () => {
         const lastName = 'Doe';
         const gender = Gender.Male;
         const roles = [Role.User];
-        let version = 0;
+        const version = 0;
 
         const existingUserMock = { 
             _id: loggedInUserId, 
@@ -424,7 +424,7 @@ describe('user', () => {
         const lastName = 'Doe';
         const gender = Gender.Male;
         const roles = [Role.User];
-        let version = 0;
+        const version = 0;
 
         const existingUserMock = { 
             _id: loggedInUserId, 
