@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import bcryptjs from 'bcryptjs';
-import userModel from '../../src/models/user-model';
+import userModel, { UserDocument } from '../../src/models/user-model';
 import * as authService from '../../src/services/auth-service';
 import Gender from '../../src/enums/gender';
 import Role from '../../src/enums/role';
@@ -18,6 +18,11 @@ describe('auth', () => {
     beforeEach(() => {
         jest.clearAllMocks(); // Clear mocks before each test
     });
+
+    const toJSON = function(this: UserDocument) {
+        const { password, _id, ...rest } = this;
+        return { ...rest, id: _id };
+    };
 
     it('Should register a new user', async () => {
         // Arrange
@@ -37,12 +42,7 @@ describe('auth', () => {
             email,
             password: await bcryptjs.hash(password, 10),
             roles,
-            toJSON: function() {
-                const { password, ...rest } = this;
-                rest.id = rest._id;
-                delete rest._id;
-                return rest;
-            }
+            toJSON
         };
 
         (userModel.create as jest.Mock).mockResolvedValue(userDoc);
@@ -122,10 +122,7 @@ describe('auth', () => {
             email,
             password: await bcryptjs.hash(password, 10),
             roles,
-            toJSON: function() {
-                const { password, ...rest } = this;
-                return rest;
-            }
+            toJSON
         };
 
         (userModel.findOne as jest.Mock).mockResolvedValue(userDoc);
@@ -157,10 +154,7 @@ describe('auth', () => {
             email,
             password: await bcryptjs.hash(password, 10),
             roles,
-            toJSON: function() {
-                const { password, ...rest } = this;
-                return rest;
-            }
+            toJSON
         };
 
         (userModel.findOne as jest.Mock).mockResolvedValue(userDoc);
@@ -216,10 +210,7 @@ describe('auth', () => {
             email,
             password: await bcryptjs.hash(password, 10),
             roles,
-            toJSON: function() {
-                const { password, ...rest } = this;
-                return rest;
-            }
+            toJSON
         };
 
         (userModel.findOne as jest.Mock).mockResolvedValue(userDoc);
