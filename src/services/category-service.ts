@@ -2,11 +2,11 @@ import logger from "../config/logger";
 import AppError from "../errors/app-error";
 import { DisplayableCategory } from "../interfaces/i-category";
 import categoryModel, { CategoryDocument } from "../models/category-model";
-import { validateDescription } from "../validators/category-validator";
+import { validateCategoryDescription } from "../validators/category-validator";
 import { validatePaginationDetails, validateVersion } from "../validators/common-validator";
 
 const createCategory = async (description: string): Promise<DisplayableCategory> => {
-    validateDescription(description);
+    validateCategoryDescription(description);
 
     const existingCategory = await categoryModel.findOne({description});
     if (existingCategory) {
@@ -42,8 +42,9 @@ const getCategory = async (categoryId: string): Promise<DisplayableCategory> => 
 }
 
 const updateCategory = async (categoryId: string, description: string, __v: number): Promise<DisplayableCategory> => {
-    validateDescription(description);
+    validateCategoryDescription(description);
     validateVersion(__v);
+    description = description.trim();
 
     const categoryDoc: CategoryDocument | null = await categoryModel.findById(categoryId);
 
@@ -53,6 +54,14 @@ const updateCategory = async (categoryId: string, description: string, __v: numb
 
     if (categoryDoc.__v !== __v) {
         throw new AppError(`Category has been modified by another process. Please refresh and try again.`, 409);
+    }
+
+    const similarCategory = await categoryModel.findOne({
+        description,
+        _id: { $ne: categoryId }
+    });
+    if (similarCategory) {
+        throw new AppError(`A category with the description "${description}" already exists. Cannot update the category.`, 400);
     }
 
     const updatedCategory = await categoryModel.findByIdAndUpdate(

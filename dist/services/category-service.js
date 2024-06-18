@@ -10,7 +10,7 @@ const category_model_1 = __importDefault(require("../models/category-model"));
 const category_validator_1 = require("../validators/category-validator");
 const common_validator_1 = require("../validators/common-validator");
 const createCategory = async (description) => {
-    (0, category_validator_1.validateDescription)(description);
+    (0, category_validator_1.validateCategoryDescription)(description);
     const existingCategory = await category_model_1.default.findOne({ description });
     if (existingCategory) {
         throw new app_error_1.default(`Existing category found for: ${description}`, 400);
@@ -42,14 +42,22 @@ const getCategory = async (categoryId) => {
 };
 exports.getCategory = getCategory;
 const updateCategory = async (categoryId, description, __v) => {
-    (0, category_validator_1.validateDescription)(description);
+    (0, category_validator_1.validateCategoryDescription)(description);
     (0, common_validator_1.validateVersion)(__v);
+    description = description.trim();
     const categoryDoc = await category_model_1.default.findById(categoryId);
     if (!categoryDoc) {
         throw new app_error_1.default(`Cannot find the category. Unable to update the category for id: ${categoryId}`, 400);
     }
     if (categoryDoc.__v !== __v) {
         throw new app_error_1.default(`Category has been modified by another process. Please refresh and try again.`, 409);
+    }
+    const similarCategory = await category_model_1.default.findOne({
+        description,
+        _id: { $ne: categoryId }
+    });
+    if (similarCategory) {
+        throw new app_error_1.default(`A category with the description "${description}" already exists. Cannot update the category.`, 400);
     }
     const updatedCategory = await category_model_1.default.findByIdAndUpdate(categoryId, { $set: { description }, $inc: { __v: 1 } }, { new: true });
     if (!updatedCategory) {

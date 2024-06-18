@@ -156,7 +156,9 @@ describe('category', () => {
             __v: version + 1,
             toJSON
         };
+
         (categoryModel.findById as jest.Mock).mockResolvedValue(existingCategoryMock);
+        (categoryModel.findOne as jest.Mock).mockResolvedValue(undefined);
         (categoryModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedCategoryMock);
 
         // Act
@@ -212,6 +214,38 @@ describe('category', () => {
             );
     });
 
+    it('Should not update a category with same description', async () => {
+        // Arrange
+        const categoryId = new mongoose.Types.ObjectId();
+        const description = 'Drink';
+        const version = 0;
+
+        const existingCategoryMock = { 
+            _id: categoryId,
+            description: 'Meal',
+            __v: version,
+            toJSON
+        };
+
+        const otherCategoryMock = { 
+            _id: new mongoose.Types.ObjectId(),
+            description,
+            __v: version + 3,
+            toJSON
+        };
+        
+        (categoryModel.findById as jest.Mock).mockResolvedValue(existingCategoryMock);
+        (categoryModel.findOne as jest.Mock).mockResolvedValue(otherCategoryMock);
+
+        // Act & Assert
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(AppError);
+        await expect(categoryService.updateCategory(categoryId.toString(), description, version))
+            .rejects.toThrow(
+                expect.objectContaining({ statusCode: 400 })
+            );
+    });
+
     it('Should not update a logged in user when database error occurs', async () => {
         // Arrange
         const categoryId = new mongoose.Types.ObjectId();
@@ -226,6 +260,7 @@ describe('category', () => {
         };
         
         (categoryModel.findById as jest.Mock).mockResolvedValue(existingUserMock);
+        (categoryModel.findOne as jest.Mock).mockResolvedValue(undefined);
         (categoryModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(undefined);
 
         // Act & Assert
