@@ -6,9 +6,10 @@ const categorySchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
     toJSON: {
-        transform: (doc, ret, options) => {
-            return ret;
-        }
+        transform: (doc, { _id, ...rest }) => ({
+            id: _id,
+            ...rest
+        })
     },
     versionKey: '__v'
 });
