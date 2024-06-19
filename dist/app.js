@@ -43,6 +43,7 @@ const user_route_1 = __importDefault(require("./routes/user-route"));
 const cors_1 = __importDefault(require("cors"));
 const category_route_1 = __importDefault(require("./routes/category-route"));
 const recipe_route_1 = __importDefault(require("./routes/recipe-route"));
+const comment_route_1 = __importDefault(require("./routes/comment-route"));
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
 const mongoUri = process.env.MONGO_URI || '';
@@ -62,6 +63,7 @@ app.use('/auth', auth_route_1.default);
 app.use('/users', user_route_1.default);
 app.use('/categories', category_route_1.default);
 app.use('/recipes', recipe_route_1.default);
+app.use('/comments', comment_route_1.default);
 app.use(not_found_handler_1.default);
 app.use(error_handler_1.default);
 const startServer = async () => {
