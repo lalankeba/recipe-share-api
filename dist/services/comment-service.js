@@ -7,7 +7,8 @@ exports.createComment = void 0;
 const logger_1 = __importDefault(require("../config/logger"));
 const comment_model_1 = __importDefault(require("../models/comment-model"));
 const createComment = async (userId, recipeId, description) => {
-    //validateDescription(description);
+    //validateCommentDescription(description);
+    //validateRecipe(recipeId);
     const commentDocument = await comment_model_1.default.create({
         description: description.trim(),
         userId,
