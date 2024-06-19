@@ -6,9 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createComment = void 0;
 const logger_1 = __importDefault(require("../config/logger"));
 const comment_model_1 = __importDefault(require("../models/comment-model"));
+const comment_validator_1 = require("../validators/comment-validator");
 const createComment = async (userId, recipeId, description) => {
-    //validateCommentDescription(description);
-    //validateRecipe(recipeId);
+    (0, comment_validator_1.validateCommentDescription)(description);
     const commentDocument = await comment_model_1.default.create({
         description: description.trim(),
         userId,
