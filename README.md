@@ -54,13 +54,30 @@ npm test
 ## API Endpoints
 
 - `GET /`: Returns welcome message
+
+### Registration and Login
 - `POST /auth/register`: Register a new user.
 - `POST /auth/login`: All users login.
+
+### Manage Users
 - `GET /users`: View all users. (Needs Admin permissions)
 - `GET /users/user`: View logged in user.
-- `GET /users/user/:id`: View any user. (Needs Admin permissions)
+- `GET /users/user/:id`: View any user by id. (Needs Admin permissions)
 - `PUT /users/user`: Update logged in user.
 - `PUT /users/user/:id`: Update any user. (Needs Admin permissions)
+
+### Categories
+- `GET /categories`: View all categories.
+- `GET /categories/:id`: View category by id.
+- `POST /categories`: Create a new category. (Needs Admin permissions)
+- `PUT /categories/:id`: Update a category. (Needs Admin permissions)
+
+### Recipes
+- `POST /recipes`: Create a new recipe.
+
+### Comments
+- `POST /comments`: Create a new comment.
+
 
 
 ## License
@@ -139,6 +156,36 @@ curl -X PUT http://localhost:3000/users/user/:id -H 'Content-Type: application/j
     "lastName":"Rozen", 
     "gender":"MALE", 
     "roles":["ADMIN", "USER"], 
+    "__v":0 
+}'
+```
+
+### Add category
+```
+curl -X POST http://localhost:3000/categories -H 'Content-Type: application/json' \
+-H 'Authorization: Bearer <token>' \
+-d '{ 
+    "description": "Dessert" 
+}'
+```
+
+### Get categories
+```
+curl http://localhost:3000/categories -H 'Authorization: Bearer <token>'
+```
+
+### Get category by id
+```
+curl http://localhost:3000/categories/:id -H 'Authorization: Bearer <token>'
+```
+
+### Update category by id
+```
+curl -X PUT http://localhost:3000/categories/666bff108727486793964aa3 \
+-H 'Content-Type: application/json' \
+-H 'Authorization: Bearer <token>' \
+-d '{ 
+    "description":"Drink", 
     "__v":0 
 }'
 ```
