@@ -102,8 +102,8 @@ curl http://localhost:3000/auth/register -H 'Content-Type: application/json' \
     "firstName": "John",
     "lastName":"Doe",
     "gender":"MALE",
-    "email": "john@example.com",
-    "password": "Abcd@1234"
+    "email": "your-email",
+    "password": "password"
 }'
 ```
 
@@ -111,8 +111,8 @@ curl http://localhost:3000/auth/register -H 'Content-Type: application/json' \
 ```
 curl http://localhost:3000/auth/login -H 'Content-Type: application/json' \
 -d '{ 
-    "email": "john@example.com", 
-    "password": "Abcd@1234" 
+    "email": "your-email", 
+    "password": "password" 
 }'
 ```
 
@@ -122,7 +122,7 @@ curl http://localhost:3000/users -H 'Authorization: Bearer <token>'
 ```
 For more information, specify page and size parameters.
 ```
-curl http://localhost:3000/users?page=2&size=10 -H 'Authorization: Bearer <token>' | jq .
+curl http://localhost:3000/users?page=2&size=10 -H 'Authorization: Bearer <token>'
 ```
 
 ### View logged in user
@@ -181,11 +181,45 @@ curl http://localhost:3000/categories/:id -H 'Authorization: Bearer <token>'
 
 ### Update category by id
 ```
-curl -X PUT http://localhost:3000/categories/666bff108727486793964aa3 \
+curl -X PUT http://localhost:3000/categories/:id \
 -H 'Content-Type: application/json' \
 -H 'Authorization: Bearer <token>' \
 -d '{ 
     "description":"Drink", 
     "__v":0 
+}'
+```
+
+### Add recipe
+```
+curl -X POST http://localhost:3000/recipes -H 'Content-Type: application/json' \
+-H 'Authorization: Bearer <token>' \
+-d '{ 
+  "title":"Fish curry", 
+  "subTitle":"Delicious Fish curry", 
+  "instructions":"Instructions to make fish curry", 
+  "ingredients":[
+    "Tuna 1kg", 
+    "garlic", 
+    "salt 2 table spoons", 
+    "Chille powder"
+  ], 
+  "prepTime":"30min", 
+  "cookTime":"20min", 
+  "categories":[
+    "category-id-1", 
+    "category-id-2"
+  ], 
+  "tags":["non veg"] 
+}'
+```
+
+### Add comment
+```
+curl -X POST http://localhost:3000/comments -H 'Content-Type: application/json' \
+-H 'Authorization: Bearer <token>' \
+-d '{ 
+  "recipeId":"recipe-id", 
+  "description": "Great. Thanks for sharing" 
 }'
 ```
