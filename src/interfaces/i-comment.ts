@@ -1,7 +1,11 @@
+interface CommentUser {
+    userId: string;
+    userFullName: string;
+}
 
 interface IComment {
     description: string;
-    userId:string;
+    user: CommentUser;
     recipeId: string;
 }
 
@@ -11,4 +15,4 @@ interface DisplayableComment extends IComment {
 }
 
 export default IComment;
-export { DisplayableComment };
+export { DisplayableComment, CommentUser };

@@ -4,6 +4,7 @@ import { DisplayableRecipe, RecipeUser } from "../interfaces/i-recipe";
 import categoryModel from "../models/category-model";
 import recipeModel, { RecipeDocument } from "../models/recipe-model";
 import userModel, { UserDocument } from "../models/user-model";
+import { validatePaginationDetails } from "../validators/common-validator";
 import { validateCreateRecipeDetails } from "../validators/recipe-validator";
 
 const createRecipe = async (title: string, subTitle: string, picture: string, instructions: string, 
@@ -58,4 +59,23 @@ const createRecipe = async (title: string, subTitle: string, picture: string, in
     return recipeDocument.toJSON();
 }
 
-export { createRecipe };
+const getRecipes = async (page: number, size: number) => {
+    validatePaginationDetails(page, size);
+    const recipes = await recipeModel
+        .find({}, { title: 1, subTitle: 1, picture: 1, categories: 1, tags: 1, totalComments: 1, user: 1, createdAt: 1 })
+        .skip(page * size)
+        .limit(size);
+
+    return recipes.map(recipe => recipe.toJSON());
+}
+
+const getRecipe = async (recipeId: string) => {
+    const recipe = await recipeModel.findById(recipeId);
+    if (recipe) {
+        return recipe.toJSON();
+    } else {
+        throw new AppError(`Recipe cannot be found for id: ${recipeId}`, 400);
+    }
+}
+
+export { createRecipe, getRecipes, getRecipe };

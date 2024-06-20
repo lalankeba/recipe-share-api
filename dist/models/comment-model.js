@@ -7,9 +7,13 @@ const mongoose_1 = require("mongoose");
 const user_model_1 = __importDefault(require("./user-model"));
 const app_error_1 = __importDefault(require("../errors/app-error"));
 const recipe_model_1 = __importDefault(require("./recipe-model"));
+const commentUserSchema = new mongoose_1.Schema({
+    userId: { type: String, required: true, ref: 'User' },
+    userFullName: { type: String, required: true }
+}, { _id: false });
 const commentSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
-    userId: { type: String, required: true, ref: 'User' },
+    user: { type: commentUserSchema, required: true },
     recipeId: { type: String, required: true, ref: 'Recipe' },
 }, {
     timestamps: true,
@@ -24,9 +28,9 @@ const commentSchema = new mongoose_1.Schema({
 commentSchema.pre('save', async function (next) {
     const comment = this;
     // Validate userId
-    const user = await user_model_1.default.findById(comment.userId);
+    const user = await user_model_1.default.findById(comment.user.userId);
     if (!user) {
-        return next(new app_error_1.default(`User not found for userId: ${comment.userId}`, 400));
+        return next(new app_error_1.default(`User not found for userId: ${comment.user.userId}`, 400));
     }
     // Validate recipeId
     const recipe = await recipe_model_1.default.findById(comment.recipeId);

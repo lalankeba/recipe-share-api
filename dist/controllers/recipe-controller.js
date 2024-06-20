@@ -26,9 +26,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createRecipe = void 0;
+exports.getCommentsByRecipe = exports.getRecipe = exports.getRecipes = exports.createRecipe = void 0;
 const logger_1 = __importDefault(require("../config/logger"));
 const recipeService = __importStar(require("../services/recipe-service"));
+const commentService = __importStar(require("../services/comment-service"));
 const createRecipe = async (req, res, next) => {
     try {
         logger_1.default.info(`Creating recipe...`);
@@ -43,3 +44,39 @@ const createRecipe = async (req, res, next) => {
     }
 };
 exports.createRecipe = createRecipe;
+const getRecipes = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 0;
+        const size = Math.min(parseInt(req.query.size) || 10, 100);
+        const recipes = await recipeService.getRecipes(page, size);
+        res.status(200).json(recipes);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getRecipes = getRecipes;
+const getRecipe = async (req, res, next) => {
+    try {
+        const recipeId = req.params.id;
+        const recipe = await recipeService.getRecipe(recipeId);
+        res.status(200).json(recipe);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getRecipe = getRecipe;
+const getCommentsByRecipe = async (req, res, next) => {
+    try {
+        const recipeId = req.params.id;
+        const page = parseInt(req.query.page) || 0;
+        const size = Math.min(parseInt(req.query.size) || 10, 100);
+        const comments = await commentService.getCommentsByRecipe(recipeId, page, size);
+        res.status(200).json(comments);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getCommentsByRecipe = getCommentsByRecipe;

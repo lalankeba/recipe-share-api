@@ -74,9 +74,14 @@ npm test
 
 ### Recipes
 - `POST /recipes`: Create a new recipe.
+- `GET /recipes`: View all recipes.
+- `GET /recipes/:id`: View recipe by id.
 
 ### Comments
 - `POST /comments`: Create a new comment.
+- `GET /comments`: View all comments.
+- `GET /comments/:id`: View comment by id.
+- `GET /recipes/:id/comments`: View comments by recipe.
 
 
 
@@ -214,6 +219,16 @@ curl -X POST http://localhost:3000/recipes -H 'Content-Type: application/json' \
 }'
 ```
 
+### Get recipes
+```
+curl http://localhost:3000/recipes
+```
+
+### Get recipe by id
+```
+curl http://localhost:3000/recipes/:id
+```
+
 ### Add comment
 ```
 curl -X POST http://localhost:3000/comments -H 'Content-Type: application/json' \
@@ -222,4 +237,19 @@ curl -X POST http://localhost:3000/comments -H 'Content-Type: application/json' 
   "recipeId":"recipe-id", 
   "description": "Great. Thanks for sharing" 
 }'
+```
+
+### Get comments
+```
+curl http://localhost:3000/comments -H 'Authorization: Bearer <token>'
+```
+
+### Get comments by recipe
+```
+curl http://localhost:3000/recipes/:id/comments
+```
+
+### Get comment by id
+```
+curl http://localhost:3000/comments/:id
 ```

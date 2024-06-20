@@ -10,4 +10,7 @@ const check_roles_1 = __importDefault(require("../middleware/check-roles"));
 const role_1 = __importDefault(require("../enums/role"));
 const recipeRoute = express_1.default.Router();
 recipeRoute.post('/', authenticate_jwt_1.default, (0, check_roles_1.default)([role_1.default.Admin, role_1.default.User]), recipe_controller_1.createRecipe);
+recipeRoute.get('/', recipe_controller_1.getRecipes);
+recipeRoute.get('/:id', recipe_controller_1.getRecipe);
+recipeRoute.get('/:id/comments', recipe_controller_1.getCommentsByRecipe);
 exports.default = recipeRoute;
