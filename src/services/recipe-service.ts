@@ -69,6 +69,24 @@ const getRecipes = async (page: number, size: number) => {
     return recipes.map(recipe => recipe.toJSON());
 }
 
+const getRecipesByUser = async (userId: string, page: number, size: number) => {
+    const user = await userModel.findById(userId);
+    if (!user) {
+        throw new AppError(`Recipes cannot be found for invalid user id: ${userId}`, 400);
+    }
+    validatePaginationDetails(page, size);
+    
+    const recipes = await recipeModel
+        .find(
+            { 'user.userId': userId }, 
+            { title: 1, subTitle: 1, picture: 1, categories: 1, tags: 1, totalComments: 1, user: 1, createdAt: 1 }
+        )
+        .skip(page * size)
+        .limit(size);
+
+    return recipes.map(recipe => recipe.toJSON());
+}
+
 const getRecipe = async (recipeId: string) => {
     const recipe = await recipeModel.findById(recipeId);
     if (recipe) {
@@ -78,4 +96,4 @@ const getRecipe = async (recipeId: string) => {
     }
 }
 
-export { createRecipe, getRecipes, getRecipe };
+export { createRecipe, getRecipes, getRecipesByUser, getRecipe };

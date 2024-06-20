@@ -23,8 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUser = exports.updateSelf = exports.getUser = exports.getSelf = exports.getUsers = void 0;
+exports.getSelfRecipes = exports.getRecipesByUser = exports.updateUser = exports.updateSelf = exports.getUser = exports.getSelf = exports.getUsers = void 0;
 const userService = __importStar(require("../services/user-service"));
+const recipeService = __importStar(require("../services/recipe-service"));
 const getUsers = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 0;
@@ -89,3 +90,30 @@ const updateUser = async (req, res, next) => {
     }
 };
 exports.updateUser = updateUser;
+const getRecipesByUser = async (req, res, next) => {
+    try {
+        const userId = req.params.id;
+        const page = parseInt(req.query.page) || 0;
+        const size = Math.min(parseInt(req.query.size) || 10, 100);
+        const recipes = await recipeService.getRecipesByUser(userId, page, size);
+        res.status(200).json(recipes);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getRecipesByUser = getRecipesByUser;
+const getSelfRecipes = async (req, res, next) => {
+    try {
+        const loggedInUser = req.user;
+        const loggedInUserId = loggedInUser.id;
+        const page = parseInt(req.query.page) || 0;
+        const size = Math.min(parseInt(req.query.size) || 10, 100);
+        const recipes = await recipeService.getRecipesByUser(loggedInUserId, page, size);
+        res.status(200).json(recipes);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getSelfRecipes = getSelfRecipes;

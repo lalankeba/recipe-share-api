@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as userService from '../services/user-service';
+import * as recipeService from '../services/recipe-service';
 import { UserDocument } from "../models/user-model";
 
 const getUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -62,4 +63,32 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-export { getUsers, getSelf, getUser, updateSelf, updateUser };
+const getRecipesByUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.params.id;
+        const page = parseInt(req.query.page as string) || 0;
+        const size = Math.min(parseInt(req.query.size as string) || 10, 100);
+        
+        const recipes = await recipeService.getRecipesByUser(userId, page, size);
+        res.status(200).json(recipes);
+    } catch (err) {
+        next(err);
+    }
+}
+
+const getSelfRecipes = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const loggedInUser = req.user as UserDocument;
+        const loggedInUserId = loggedInUser.id;
+
+        const page = parseInt(req.query.page as string) || 0;
+        const size = Math.min(parseInt(req.query.size as string) || 10, 100);
+        
+        const recipes = await recipeService.getRecipesByUser(loggedInUserId, page, size);
+        res.status(200).json(recipes);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export { getUsers, getSelf, getUser, updateSelf, updateUser, getRecipesByUser, getSelfRecipes };
