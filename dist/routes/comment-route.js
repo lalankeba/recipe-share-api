@@ -10,4 +10,6 @@ const check_roles_1 = __importDefault(require("../middleware/check-roles"));
 const role_1 = __importDefault(require("../enums/role"));
 const commentRoute = express_1.default.Router();
 commentRoute.post('/', authenticate_jwt_1.default, (0, check_roles_1.default)([role_1.default.Admin, role_1.default.User]), comment_controller_1.createComment);
+commentRoute.get('/', authenticate_jwt_1.default, (0, check_roles_1.default)([role_1.default.Admin]), comment_controller_1.getComments);
+commentRoute.get('/:id', comment_controller_1.getComment);
 exports.default = commentRoute;

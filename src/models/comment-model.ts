@@ -6,10 +6,18 @@ import recipeModel from './recipe-model';
 
 interface CommentDocument extends IComment, Document {}
 
+const commentUserSchema = new Schema(
+  {
+      userId: { type: String, required: true, ref: 'User' },
+      userFullName: { type: String, required: true }
+  },
+  { _id: false }
+);
+
 const commentSchema = new Schema<CommentDocument>(
     {
         description: { type: String, required: true },
-        userId: { type: String, required: true, ref: 'User' },
+        user: { type: commentUserSchema, required: true },
         recipeId: { type: String, required: true, ref: 'Recipe' },
     },
     {
@@ -28,9 +36,9 @@ commentSchema.pre('save', async function(next) {
   const comment = this as CommentDocument;
 
   // Validate userId
-  const user = await userModel.findById(comment.userId);
+  const user = await userModel.findById(comment.user.userId);
   if (!user) {
-      return next(new AppError(`User not found for userId: ${comment.userId}`, 400));
+      return next(new AppError(`User not found for userId: ${comment.user.userId}`, 400));
   }
 
   // Validate recipeId

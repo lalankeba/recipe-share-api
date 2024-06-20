@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createComment = void 0;
+exports.getComment = exports.getComments = exports.createComment = void 0;
 const logger_1 = __importDefault(require("../config/logger"));
 const commentService = __importStar(require("../services/comment-service"));
 const createComment = async (req, res, next) => {
@@ -43,3 +43,26 @@ const createComment = async (req, res, next) => {
     }
 };
 exports.createComment = createComment;
+const getComments = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 0;
+        const size = Math.min(parseInt(req.query.size) || 10, 100);
+        const comments = await commentService.getComments(page, size);
+        res.status(200).json(comments);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getComments = getComments;
+const getComment = async (req, res, next) => {
+    try {
+        const commentId = req.params.id;
+        const comment = await commentService.getComment(commentId);
+        res.status(200).json(comment);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getComment = getComment;
