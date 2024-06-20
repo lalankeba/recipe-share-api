@@ -3,12 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createRecipe = void 0;
+exports.getRecipe = exports.getRecipes = exports.createRecipe = void 0;
 const logger_1 = __importDefault(require("../config/logger"));
 const app_error_1 = __importDefault(require("../errors/app-error"));
 const category_model_1 = __importDefault(require("../models/category-model"));
 const recipe_model_1 = __importDefault(require("../models/recipe-model"));
 const user_model_1 = __importDefault(require("../models/user-model"));
+const common_validator_1 = require("../validators/common-validator");
 const recipe_validator_1 = require("../validators/recipe-validator");
 const createRecipe = async (title, subTitle, picture, instructions, ingredients, prepTime, cookTime, additionalTime, categoryIds, tags, userId) => {
     (0, recipe_validator_1.validateCreateRecipeDetails)(title, instructions);
@@ -52,3 +53,22 @@ const createRecipe = async (title, subTitle, picture, instructions, ingredients,
     return recipeDocument.toJSON();
 };
 exports.createRecipe = createRecipe;
+const getRecipes = async (page, size) => {
+    (0, common_validator_1.validatePaginationDetails)(page, size);
+    const recipes = await recipe_model_1.default
+        .find({}, { title: 1, subTitle: 1, picture: 1, categories: 1, tags: 1, totalComments: 1, user: 1, createdAt: 1 })
+        .skip(page * size)
+        .limit(size);
+    return recipes.map(recipe => recipe.toJSON());
+};
+exports.getRecipes = getRecipes;
+const getRecipe = async (recipeId) => {
+    const recipe = await recipe_model_1.default.findById(recipeId);
+    if (recipe) {
+        return recipe.toJSON();
+    }
+    else {
+        throw new app_error_1.default(`Recipe cannot be found for id: ${recipeId}`, 400);
+    }
+};
+exports.getRecipe = getRecipe;
