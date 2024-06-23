@@ -4,7 +4,10 @@ import userModel from './user-model';
 import AppError from '../errors/app-error';
 import recipeModel from './recipe-model';
 
-interface CommentDocument extends IComment, Document {}
+interface CommentDocument extends IComment, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const commentUserSchema = new Schema(
   {

@@ -1,5 +1,5 @@
 import { Schema, model, Document } from 'mongoose';
-import IRecipe from '../interfaces/i-recipe';
+import IRecipe, { RecipeComment } from '../interfaces/i-recipe';
 
 interface RecipeDocument extends IRecipe, Document {}
 
@@ -20,7 +20,7 @@ const recipeCategorySchema = new Schema(
     { _id: false }
 );
 
-const recipeCommentSchema = new Schema(
+const recipeCommentSchema = new Schema<RecipeComment>(
     {
         commentId: { type: String, required: true, ref: 'Comment' },
         description: { type: String, required: true },

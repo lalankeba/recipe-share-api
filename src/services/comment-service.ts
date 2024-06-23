@@ -1,8 +1,9 @@
 import logger from "../config/logger";
 import AppError from "../errors/app-error";
 import { CommentUser, DisplayableComment } from "../interfaces/i-comment";
+import { RecipeComment } from "../interfaces/i-recipe";
 import commentModel, { CommentDocument } from "../models/comment-model";
-import recipeModel from "../models/recipe-model";
+import recipeModel, { RecipeDocument } from "../models/recipe-model";
 import userModel, { UserDocument } from "../models/user-model";
 import { validateCommentDescription } from "../validators/comment-validator";
 import { validatePaginationDetails } from "../validators/common-validator";
@@ -10,13 +11,14 @@ import { validatePaginationDetails } from "../validators/common-validator";
 const createComment = async (userId: string, recipeId: string, description: string): Promise<DisplayableComment> => {
     validateCommentDescription(description);
 
-    const userDocument: UserDocument | null = await userModel.findById(userId);
-    if (!userDocument) {
-        throw new AppError(`Cannot find the user. Unable to create comment for user id: ${userId}`, 400);
-    }
+    const userDocument: UserDocument = await fetchUserForComment(userId);
+    const recipeDocument: RecipeDocument = await fetchRecipeForComment(recipeId);
+
+    const userFullName = userDocument.firstName + ' ' + userDocument.lastName;
+    
     const commentUser: CommentUser = {
         userId: userDocument.id,
-        userFullName: userDocument.firstName + ' ' + userDocument.lastName
+        userFullName
     }
     
     const commentDocument: CommentDocument = await commentModel.create({
@@ -24,6 +26,27 @@ const createComment = async (userId: string, recipeId: string, description: stri
         user: commentUser,
         recipeId
     });
+    
+    const recipeComment: RecipeComment = {
+        commentId: commentDocument.id,
+        description,
+        createdAt: commentDocument.createdAt.toISOString(),
+        userId,
+        userFullName
+    };
+    
+    const comments = recipeDocument.comments || [];
+    comments.unshift(recipeComment);
+    const recentComments = comments.slice(0, 10);
+
+    await recipeModel.findByIdAndUpdate(
+        recipeId,
+        { 
+            $set: { comments: recentComments }, 
+            $inc: { totalComments: 1 } 
+        },
+        { new: true }
+    );
 
     logger.info(`Comment created`);
     
@@ -62,6 +85,22 @@ const getComment = async (commentId: string) => {
     } else {
         throw new AppError(`Comment cannot be found for id: ${commentId}`, 400);
     }
+}
+
+const fetchUserForComment = async (userId: string): Promise<UserDocument> => {
+    const userDocument: UserDocument | null = await userModel.findById(userId);
+    if (!userDocument) {
+        throw new AppError(`Cannot find the user for user id: ${userId}`, 400);
+    }
+    return userDocument;
+}
+
+const fetchRecipeForComment = async (recipeId: string): Promise<RecipeDocument> => {
+    const recipeDocument: RecipeDocument | null = await recipeModel.findById(recipeId);
+    if (!recipeDocument) {
+        throw new AppError(`Cannot find the recipe for recipe id: ${recipeId}`, 400);
+    }
+    return recipeDocument;
 }
 
 export { createComment, getComments, getCommentsByRecipe, getComment };
