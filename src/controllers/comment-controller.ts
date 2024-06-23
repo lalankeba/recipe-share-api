@@ -57,4 +57,20 @@ const updateComment = async (req: Request, res: Response, next: NextFunction) =>
     }
 }
 
-export { createComment, getComments, getComment, updateComment };
+const deleteComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        logger.info(`Deleting comment...`);
+
+        const loggedInUser = req.user as UserDocument;
+        const loggedInUserId = loggedInUser.id;
+
+        const commentId = req.params.id;
+        await commentService.deleteComment(commentId, loggedInUserId);
+
+        res.status(204).send();
+    } catch (err) {
+        next(err);
+    }
+}
+
+export { createComment, getComments, getComment, updateComment, deleteComment };

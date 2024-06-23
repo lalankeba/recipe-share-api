@@ -1,5 +1,5 @@
 import express from 'express';
-import { createComment, getComment, getComments, updateComment } from '../controllers/comment-controller';
+import { createComment, deleteComment, getComment, getComments, updateComment } from '../controllers/comment-controller';
 import authenticateJwt from '../middleware/authenticate-jwt';
 import checkRoles from '../middleware/check-roles';
 import Role from '../enums/role';
@@ -10,5 +10,6 @@ commentRoute.post('/', authenticateJwt, checkRoles([Role.Admin, Role.User]), cre
 commentRoute.get('/', authenticateJwt, checkRoles([Role.Admin]), getComments);
 commentRoute.get('/:id', getComment);
 commentRoute.put('/:id', authenticateJwt, checkRoles([Role.Admin, Role.User]), updateComment);
+commentRoute.delete('/:id', authenticateJwt, checkRoles([Role.Admin, Role.User]), deleteComment);
 
 export default commentRoute;

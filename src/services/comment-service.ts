@@ -90,7 +90,7 @@ const getComment = async (commentId: string) => {
 const updateComment = async (commentId: string, userId: string, recipeId: string, description: string, __v: number): Promise<DisplayableComment> => {
     validateCommentDescription(description);
 
-    await fetchComment(commentId, userId, __v);
+    await fetchCommentForUpdate(commentId, userId, __v);
     const userDocument: UserDocument = await fetchUserForComment(userId);
     const recipeDocument: RecipeDocument = await fetchRecipeForComment(recipeId);
 
@@ -136,6 +136,47 @@ const updateComment = async (commentId: string, userId: string, recipeId: string
     return updatedCommentDocument.toJSON();
 }
 
+const deleteComment = async (commentId: string, userId: string) => {
+    const commentDocument: CommentDocument = await fetchComment(commentId, userId);
+    const recipeId = commentDocument.recipeId;
+
+    const comment = await commentModel.findByIdAndDelete(commentId);
+    if (!comment) {
+        throw new AppError(`Comment cannot be found for id: ${commentId}`, 404);
+    }
+
+    const updatedComments = await getLatestComments(recipeId, 10);
+
+    await recipeModel.findByIdAndUpdate(
+        recipeId,
+        { $set: { comments: updatedComments }, $inc: { totalComments: -1 } },
+        { new: true }
+    );
+
+    logger.info(`Comment deleted`);
+
+    return comment.toJSON();
+}
+
+const getLatestComments = async (recipeId: string, limit: number): Promise<RecipeComment[]> => {
+    const latestCommentDocs: CommentDocument[] = await commentModel.find({ recipeId })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .exec();
+    
+    const recipeComments: RecipeComment[] = latestCommentDocs.map(commentDocument => {
+        return {
+            commentId: commentDocument.id,
+            description: commentDocument.description,
+            createdAt: commentDocument.createdAt.toISOString(),
+            userId: commentDocument.user.userId,
+            userFullName: commentDocument.user.userFullName
+        };
+    });
+
+    return recipeComments;
+}
+
 const fetchUserForComment = async (userId: string): Promise<UserDocument> => {
     const userDocument: UserDocument | null = await userModel.findById(userId);
     if (!userDocument) {
@@ -152,18 +193,23 @@ const fetchRecipeForComment = async (recipeId: string): Promise<RecipeDocument> 
     return recipeDocument;
 }
 
-const fetchComment = async (commentId: string, userId: string, __v: number): Promise<CommentDocument> => {
+const fetchComment = async (commentId: string, userId: string): Promise<CommentDocument> => {
     const commentDocument: CommentDocument | null = await commentModel.findById(commentId);
     if (!commentDocument) {
-        throw new AppError(`Cannot find the comment for comment id: ${commentId}`, 400);
+        throw new AppError(`Cannot find the comment for comment id: ${commentId}`, 404);
     }
     if (commentDocument.user.userId !== userId.toString()) {
-        throw new AppError(`Comment cannot be updated by another user other than owner of the comment.`, 401);
+        throw new AppError(`Comment cannot be modified by another user other than the owner of the comment.`, 401);
     }
+    return commentDocument;
+}
+
+const fetchCommentForUpdate = async (commentId: string, userId: string, __v: number): Promise<CommentDocument> => {
+    const commentDocument: CommentDocument | null = await fetchComment(commentId, userId);
     if (commentDocument.__v !== __v) {
         throw new AppError(`Comment has been modified by another process. Please refresh and try again.`, 409);
     }
     return commentDocument;
 }
 
-export { createComment, getComments, getCommentsByRecipe, getComment, updateComment };
+export { createComment, getComments, getCommentsByRecipe, getComment, updateComment, deleteComment };
