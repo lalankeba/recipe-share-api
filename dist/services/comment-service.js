@@ -75,11 +75,11 @@ const getComment = async (commentId) => {
     }
 };
 exports.getComment = getComment;
-const updateComment = async (commentId, userId, recipeId, description, __v) => {
+const updateComment = async (commentId, userId, description, __v) => {
     (0, comment_validator_1.validateCommentDescription)(description);
-    await fetchCommentForUpdate(commentId, userId, __v);
+    const commentDocument = await fetchCommentForUpdate(commentId, userId, __v);
+    const recipeId = commentDocument.recipeId;
     const userDocument = await fetchUserForComment(userId);
-    const recipeDocument = await fetchRecipeForComment(recipeId);
     const userFullName = userDocument.firstName + ' ' + userDocument.lastName;
     const commentUser = {
         userId: userDocument.id,
@@ -89,18 +89,7 @@ const updateComment = async (commentId, userId, recipeId, description, __v) => {
     if (!updatedCommentDocument) {
         throw new app_error_1.default('Failed to update comment.', 500);
     }
-    const comments = recipeDocument.comments || [];
-    const commentIndex = comments.findIndex(comment => comment.commentId === commentId);
-    if (commentIndex !== -1) {
-        const updatedRecipeComment = {
-            commentId,
-            description,
-            createdAt: comments[commentIndex].createdAt,
-            userId,
-            userFullName
-        };
-        comments[commentIndex] = updatedRecipeComment;
-    }
+    const comments = await getLatestComments(recipeId, 10);
     await recipe_model_1.default.findByIdAndUpdate(recipeId, { $set: { comments } }, { new: true });
     logger_1.default.info(`Comment updated`);
     return updatedCommentDocument.toJSON();

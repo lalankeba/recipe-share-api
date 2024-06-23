@@ -72,8 +72,8 @@ const updateComment = async (req, res, next) => {
         const loggedInUser = req.user;
         const loggedInUserId = loggedInUser.id;
         const commentId = req.params.id;
-        const { recipeId, description, __v } = req.body;
-        const updatedComment = await commentService.updateComment(commentId, loggedInUserId, recipeId, description, __v);
+        const { description, __v } = req.body;
+        const updatedComment = await commentService.updateComment(commentId, loggedInUserId, description, __v);
         res.status(200).json(updatedComment);
     }
     catch (err) {

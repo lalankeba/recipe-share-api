@@ -87,12 +87,12 @@ const getComment = async (commentId: string) => {
     }
 }
 
-const updateComment = async (commentId: string, userId: string, recipeId: string, description: string, __v: number): Promise<DisplayableComment> => {
+const updateComment = async (commentId: string, userId: string, description: string, __v: number): Promise<DisplayableComment> => {
     validateCommentDescription(description);
 
-    await fetchCommentForUpdate(commentId, userId, __v);
+    const commentDocument: CommentDocument = await fetchCommentForUpdate(commentId, userId, __v);
+    const recipeId = commentDocument.recipeId;
     const userDocument: UserDocument = await fetchUserForComment(userId);
-    const recipeDocument: RecipeDocument = await fetchRecipeForComment(recipeId);
 
     const userFullName = userDocument.firstName + ' ' + userDocument.lastName;
     
@@ -111,19 +111,7 @@ const updateComment = async (commentId: string, userId: string, recipeId: string
         throw new AppError('Failed to update comment.', 500);
     }
     
-    const comments = recipeDocument.comments || [];
-    const commentIndex = comments.findIndex(comment => comment.commentId === commentId);
-
-    if (commentIndex !== -1) {
-        const updatedRecipeComment: RecipeComment = {
-            commentId,
-            description,
-            createdAt: comments[commentIndex].createdAt,
-            userId,
-            userFullName
-        };
-        comments[commentIndex] = updatedRecipeComment;
-    }
+    const comments = await getLatestComments(recipeId, 10);
 
     await recipeModel.findByIdAndUpdate(
         recipeId,
