@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getComment = exports.getCommentsByRecipe = exports.getComments = exports.createComment = void 0;
+exports.updateComment = exports.getComment = exports.getCommentsByRecipe = exports.getComments = exports.createComment = void 0;
 const logger_1 = __importDefault(require("../config/logger"));
 const app_error_1 = __importDefault(require("../errors/app-error"));
 const comment_model_1 = __importDefault(require("../models/comment-model"));
@@ -75,6 +75,37 @@ const getComment = async (commentId) => {
     }
 };
 exports.getComment = getComment;
+const updateComment = async (commentId, userId, recipeId, description, __v) => {
+    (0, comment_validator_1.validateCommentDescription)(description);
+    await fetchComment(commentId, userId, __v);
+    const userDocument = await fetchUserForComment(userId);
+    const recipeDocument = await fetchRecipeForComment(recipeId);
+    const userFullName = userDocument.firstName + ' ' + userDocument.lastName;
+    const commentUser = {
+        userId: userDocument.id,
+        userFullName
+    };
+    const updatedCommentDocument = await comment_model_1.default.findByIdAndUpdate(commentId, { $set: { description, user: commentUser }, $inc: { __v: 1 } }, { new: true });
+    if (!updatedCommentDocument) {
+        throw new app_error_1.default('Failed to update comment.', 500);
+    }
+    const comments = recipeDocument.comments || [];
+    const commentIndex = comments.findIndex(comment => comment.commentId === commentId);
+    if (commentIndex !== -1) {
+        const updatedRecipeComment = {
+            commentId,
+            description,
+            createdAt: comments[commentIndex].createdAt,
+            userId,
+            userFullName
+        };
+        comments[commentIndex] = updatedRecipeComment;
+    }
+    await recipe_model_1.default.findByIdAndUpdate(recipeId, { $set: { comments } }, { new: true });
+    logger_1.default.info(`Comment updated`);
+    return updatedCommentDocument.toJSON();
+};
+exports.updateComment = updateComment;
 const fetchUserForComment = async (userId) => {
     const userDocument = await user_model_1.default.findById(userId);
     if (!userDocument) {
@@ -88,4 +119,17 @@ const fetchRecipeForComment = async (recipeId) => {
         throw new app_error_1.default(`Cannot find the recipe for recipe id: ${recipeId}`, 400);
     }
     return recipeDocument;
+};
+const fetchComment = async (commentId, userId, __v) => {
+    const commentDocument = await comment_model_1.default.findById(commentId);
+    if (!commentDocument) {
+        throw new app_error_1.default(`Cannot find the comment for comment id: ${commentId}`, 400);
+    }
+    if (commentDocument.user.userId !== userId.toString()) {
+        throw new app_error_1.default(`Comment cannot be updated by another user other than owner of the comment.`, 401);
+    }
+    if (commentDocument.__v !== __v) {
+        throw new app_error_1.default(`Comment has been modified by another process. Please refresh and try again.`, 409);
+    }
+    return commentDocument;
 };

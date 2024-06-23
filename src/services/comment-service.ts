@@ -87,6 +87,55 @@ const getComment = async (commentId: string) => {
     }
 }
 
+const updateComment = async (commentId: string, userId: string, recipeId: string, description: string, __v: number): Promise<DisplayableComment> => {
+    validateCommentDescription(description);
+
+    await fetchComment(commentId, userId, __v);
+    const userDocument: UserDocument = await fetchUserForComment(userId);
+    const recipeDocument: RecipeDocument = await fetchRecipeForComment(recipeId);
+
+    const userFullName = userDocument.firstName + ' ' + userDocument.lastName;
+    
+    const commentUser: CommentUser = {
+        userId: userDocument.id,
+        userFullName
+    }
+
+    const updatedCommentDocument = await commentModel.findByIdAndUpdate(
+        commentId,
+        { $set: { description, user: commentUser }, $inc: { __v: 1 } },
+        { new: true }
+    );
+
+    if (!updatedCommentDocument) {
+        throw new AppError('Failed to update comment.', 500);
+    }
+    
+    const comments = recipeDocument.comments || [];
+    const commentIndex = comments.findIndex(comment => comment.commentId === commentId);
+
+    if (commentIndex !== -1) {
+        const updatedRecipeComment: RecipeComment = {
+            commentId,
+            description,
+            createdAt: comments[commentIndex].createdAt,
+            userId,
+            userFullName
+        };
+        comments[commentIndex] = updatedRecipeComment;
+    }
+
+    await recipeModel.findByIdAndUpdate(
+        recipeId,
+        { $set: { comments } },
+        { new: true }
+    );
+
+    logger.info(`Comment updated`);
+    
+    return updatedCommentDocument.toJSON();
+}
+
 const fetchUserForComment = async (userId: string): Promise<UserDocument> => {
     const userDocument: UserDocument | null = await userModel.findById(userId);
     if (!userDocument) {
@@ -103,4 +152,18 @@ const fetchRecipeForComment = async (recipeId: string): Promise<RecipeDocument> 
     return recipeDocument;
 }
 
-export { createComment, getComments, getCommentsByRecipe, getComment };
+const fetchComment = async (commentId: string, userId: string, __v: number): Promise<CommentDocument> => {
+    const commentDocument: CommentDocument | null = await commentModel.findById(commentId);
+    if (!commentDocument) {
+        throw new AppError(`Cannot find the comment for comment id: ${commentId}`, 400);
+    }
+    if (commentDocument.user.userId !== userId.toString()) {
+        throw new AppError(`Comment cannot be updated by another user other than owner of the comment.`, 401);
+    }
+    if (commentDocument.__v !== __v) {
+        throw new AppError(`Comment has been modified by another process. Please refresh and try again.`, 409);
+    }
+    return commentDocument;
+}
+
+export { createComment, getComments, getCommentsByRecipe, getComment, updateComment };
