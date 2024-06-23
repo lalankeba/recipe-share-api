@@ -43,4 +43,4 @@ interface DisplayableRecipe extends IRecipe {
 }
 
 export default IRecipe;
-export { DisplayableRecipe, RecipeUser };
+export { DisplayableRecipe, RecipeUser, RecipeComment };

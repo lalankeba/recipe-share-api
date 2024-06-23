@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getComment = exports.getComments = exports.createComment = void 0;
+exports.deleteComment = exports.updateComment = exports.getComment = exports.getComments = exports.createComment = void 0;
 const logger_1 = __importDefault(require("../config/logger"));
 const commentService = __importStar(require("../services/comment-service"));
 const createComment = async (req, res, next) => {
@@ -66,3 +66,32 @@ const getComment = async (req, res, next) => {
     }
 };
 exports.getComment = getComment;
+const updateComment = async (req, res, next) => {
+    try {
+        logger_1.default.info(`Updating comment...`);
+        const loggedInUser = req.user;
+        const loggedInUserId = loggedInUser.id;
+        const commentId = req.params.id;
+        const { description, __v } = req.body;
+        const updatedComment = await commentService.updateComment(commentId, loggedInUserId, description, __v);
+        res.status(200).json(updatedComment);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.updateComment = updateComment;
+const deleteComment = async (req, res, next) => {
+    try {
+        logger_1.default.info(`Deleting comment...`);
+        const loggedInUser = req.user;
+        const loggedInUserId = loggedInUser.id;
+        const commentId = req.params.id;
+        await commentService.deleteComment(commentId, loggedInUserId);
+        res.status(204).send();
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.deleteComment = deleteComment;
