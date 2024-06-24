@@ -87,7 +87,7 @@ const getRecipesByUser = async (userId: string, page: number, size: number) => {
     return recipes.map(recipe => recipe.toJSON());
 }
 
-const getRecipe = async (recipeId: string) => {
+const getRecipe = async (recipeId: string): Promise<DisplayableRecipe> => {
     const recipe = await recipeModel.findById(recipeId);
     if (recipe) {
         return recipe.toJSON();
