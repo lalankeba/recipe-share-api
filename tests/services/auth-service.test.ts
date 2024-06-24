@@ -20,6 +20,7 @@ describe('auth', () => {
     });
 
     const toJSON = function(this: UserDocument) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, _id, ...rest } = this;
         return { ...rest, id: _id };
     };
