@@ -3,7 +3,7 @@ import { init } from '../controllers/home-controller';
 
 const homeRoute = express.Router();
 
-homeRoute.get('/', init);
-homeRoute.get('/home', init);
+homeRoute.all('/', init);
+homeRoute.all('/home', init);
 
 export default homeRoute;

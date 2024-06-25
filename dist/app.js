@@ -44,9 +44,14 @@ const cors_1 = __importDefault(require("cors"));
 const category_route_1 = __importDefault(require("./routes/category-route"));
 const recipe_route_1 = __importDefault(require("./routes/recipe-route"));
 const comment_route_1 = __importDefault(require("./routes/comment-route"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const yamljs_1 = __importDefault(require("yamljs"));
+const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
 const mongoUri = process.env.MONGO_URI || '';
+const swaggerDocument = yamljs_1.default.load(path_1.default.join(__dirname, '../swagger/swagger.yaml'));
+console.log('Swagger document:', swaggerDocument);
 const corsOptions = {
     origin: "*",
     optionsSuccessStatus: 200,
@@ -64,6 +69,7 @@ app.use('/users', user_route_1.default);
 app.use('/categories', category_route_1.default);
 app.use('/recipes', recipe_route_1.default);
 app.use('/comments', comment_route_1.default);
+app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
 app.use(not_found_handler_1.default);
 app.use(error_handler_1.default);
 const startServer = async () => {
