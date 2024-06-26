@@ -51,7 +51,6 @@ const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '3000', 10);
 const mongoUri = process.env.MONGO_URI || '';
 const swaggerDocument = yamljs_1.default.load(path_1.default.join(__dirname, '../swagger/swagger.yaml'));
-console.log('Swagger document:', swaggerDocument);
 const corsOptions = {
     origin: "*",
     optionsSuccessStatus: 200,

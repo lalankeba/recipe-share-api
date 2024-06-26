@@ -16,10 +16,15 @@ import cors from 'cors';
 import categoryRoute from './routes/category-route';
 import recipeRoute from './routes/recipe-route';
 import commentRoute from './routes/comment-route';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
 
 const app = express();
 const port: number = parseInt(process.env.PORT || '3000', 10);
 const mongoUri: string = process.env.MONGO_URI || '';
+
+const swaggerDocument = YAML.load(path.join(__dirname, '../swagger/swagger.yaml'));
 
 const corsOptions = {
     origin: "*",
@@ -41,6 +46,7 @@ app.use('/users', userRoute);
 app.use('/categories', categoryRoute);
 app.use('/recipes', recipeRoute);
 app.use('/comments', commentRoute);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(notFoundHandler);
 app.use(errorHandler);
