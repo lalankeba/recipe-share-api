@@ -1,0 +1,149 @@
+openapi: 3.0.0
+info:
+  title: Recipe Share API
+  description: API Documentation on recipe share API.
+  version: 1.0.0
+  contact:
+    name: Lalanke Athauda
+    email: lalankeba@gmail.com
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+tags:
+  - name: Init
+    description: Check the API is running properly
+  - name: Auth
+    description: Registration and login for users
+
+paths:
+  /:
+    $ref: '#/components/paths/Root'
+  /home:
+    $ref: '#/components/paths/Root'
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Registers a new user.
+      description: Registers a new user and returns the created user.
+      requestBody:
+        description: Details of the new user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedUser'
+        '400':
+          description: Bad request. Invalid data provided.
+        '500':
+          description: Unexpected error.
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login a user.
+      description: Login a user and returns token.
+      requestBody:
+        description: User credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Bad request. Invalid data provided.
+        '500':
+          description: Unexpected error.
+
+# Components section
+
+components:
+  paths:
+    Root:
+      get:
+        tags:
+          - Init
+        summary: Returns a welcome message.
+        description: Returns a message if the system is up and running.
+        responses:
+          '200':
+            description: Welcome message object
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: The system is running...
+
+  schemas:
+    NewUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+          required: true
+        lastName:
+          type: string
+          required: true
+        gender:
+          type: string
+          enum: [MALE, FEMALE, CUSTOM]
+          required: true
+        email:
+          type: string
+          required: true
+          description: Email should be unique throughout the system
+        password:
+          type: string
+          required: true
+    CreatedUser:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        gender:
+          type: string
+          enum: [MALE, FEMALE, CUSTOM]
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        __v:
+          type: number
+    UserCredentials:
+      type: object
+      properties:
+        email:
+          type: string
+          required: true
+        password:
+          type: string
+          required: true
+          

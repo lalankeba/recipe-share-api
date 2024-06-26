@@ -33,34 +33,11 @@ describe('category', () => {
         const userDoc = getTestUserDoc();
         const categoryDoc = getTestCategoryDoc();
 
-        const recipeId = new mongoose.Types.ObjectId();
         const title = 'Chicken curry';
-        const subTitle = 'Asian chicken curry';
-        const picture = 'chicken-curry.jpg';
         const instructions = 'Season the chicken pieces with a pinch of salt and pepper. Heat oil in a large pan or pot over medium heat. Add cumin seeds and let them sizzle for a few seconds.';
-        const ingredients = ['1 lb (450 g) chicken', '2 tablespoons oil', '1 large onion, finely chopped', '3 cloves garlic, minced'];
-        const prepTime = '15 mins';
-        const cookTime = '30 mins';
-        const additionalTime = '5 mins';
         const categoryIds = [categoryDoc._id.toString()];
-        const tags = ['chicken', 'curry', 'spicy'];
         const userId = userDoc._id.toString();
-        
-        const recipeDoc = {
-            _id: recipeId,
-            title,
-            subTitle,
-            picture,
-            instructions,
-            ingredients,
-            prepTime,
-            cookTime,
-            additionalTime,
-            categoryIds,
-            tags,
-            userId,
-            toJSON
-        };
+        const recipeDoc = getTestRecipeDoc(title, instructions, categoryIds, userId);
 
         const execMock = (categoryModel.create as jest.Mock).mockResolvedValue([categoryDoc]);
         (categoryModel.find as jest.Mock).mockImplementation(() => ({ exec: execMock }));
@@ -68,7 +45,9 @@ describe('category', () => {
         (recipeModel.create as jest.Mock).mockResolvedValue(recipeDoc);
 
         // Act
-        const createdRecipe: DisplayableRecipe = await recipeService.createRecipe(title, subTitle, picture, instructions, ingredients, prepTime, cookTime, additionalTime, categoryIds, tags, userId);
+        const createdRecipe: DisplayableRecipe = await recipeService.createRecipe(title, recipeDoc.subTitle, 
+            recipeDoc.picture, instructions, recipeDoc.ingredients, recipeDoc.prepTime, recipeDoc.cookTime, 
+            recipeDoc.additionalTime, categoryIds, recipeDoc.tags, userId);
 
         // Assert
         expect(createdRecipe).toEqual(expect.any(Object));
@@ -76,7 +55,7 @@ describe('category', () => {
         expect(createdRecipe).toHaveProperty('title');
         expect(createdRecipe.title).toEqual(title);
         expect(createdRecipe).toHaveProperty('subTitle');
-        expect(createdRecipe.subTitle).toEqual(subTitle);
+        expect(createdRecipe.subTitle).toEqual(recipeDoc.subTitle);
     });
 
     const invalidGetParams: [string, string][] = [
@@ -133,19 +112,157 @@ describe('category', () => {
         const userDoc = getTestUserDoc();
         const categoryDoc = getTestCategoryDoc();
 
-        const recipeId = new mongoose.Types.ObjectId();
         const title = 'Chicken curry';
+        const instructions = 'Season the chicken pieces with a pinch of salt and pepper. Heat oil in a large pan or pot over medium heat. Add cumin seeds and let them sizzle for a few seconds.';
+        const categoryIds = [new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString()];
+        const userId = userDoc._id.toString();
+        const recipeDoc = getTestRecipeDoc(title, instructions, categoryIds, userId);
+
+        const execMock = (categoryModel.create as jest.Mock).mockResolvedValue([categoryDoc]);
+        (categoryModel.find as jest.Mock).mockImplementation(() => ({ exec: execMock }));
+        (userModel.findById as jest.Mock).mockResolvedValue(userDoc);
+        (recipeModel.create as jest.Mock).mockResolvedValue(recipeDoc);
+
+        // Act & Assert
+        await expect(recipeService.createRecipe(title, recipeDoc.subTitle, recipeDoc.picture, instructions, recipeDoc.ingredients, recipeDoc.prepTime, recipeDoc.cookTime, recipeDoc.additionalTime, categoryIds, recipeDoc.tags, userId))
+            .rejects.toThrow(AppError);
+        await expect(recipeService.createRecipe(title, recipeDoc.subTitle, recipeDoc.picture, instructions, recipeDoc.ingredients, recipeDoc.prepTime, recipeDoc.cookTime, recipeDoc.additionalTime, categoryIds, recipeDoc.tags, userId))
+            .rejects.toThrow(
+                expect.objectContaining({ message: expect.stringMatching(/^Some categories were not found./) })
+            );
+    });
+
+    it('Should get list of recipes', async () => {
+        // Arrange
+        const userDoc = getTestUserDoc();
+        const categoryDoc = getTestCategoryDoc();
+
+        const instructions = 'Season the chicken pieces with a pinch of salt and pepper. Heat oil in a large pan or pot over medium heat. Add cumin seeds and let them sizzle for a few seconds.';
+        const categoryIds = [categoryDoc._id.toString()];
+        const userId = userDoc._id.toString();
+
+        const recipeDocs = [
+            getTestRecipeDoc('Fish curry', instructions, categoryIds, userId),
+            getTestRecipeDoc('Vegetable Soup', instructions, categoryIds, userId),
+            getTestRecipeDoc('Mango curry', instructions, categoryIds, userId),
+            getTestRecipeDoc('Fruit', instructions, categoryIds, userId),
+            getTestRecipeDoc('Faluda drink', instructions, categoryIds, userId),
+        ];
+
+        const findMock = jest.fn().mockReturnThis();
+        const skipMock = jest.fn().mockReturnThis();
+        const limitMock = (recipeModel.create as jest.Mock).mockResolvedValue(recipeDocs);
+        recipeModel.find = findMock;
+        (recipeModel.find as jest.Mock).mockImplementation(() => ({
+            skip: skipMock,
+            limit: limitMock,
+        }));
+
+        // Act
+        const recipes = await recipeService.getRecipes(0, recipeDocs.length);
+
+        // Assert
+        expect(Array.isArray(recipes)).toBe(true);
+        expect(recipes.length).toBe(recipeDocs.length);
+        recipeDocs.forEach((recipe) => {
+            expect(recipe).toHaveProperty('title');
+        });
+    });
+
+    it('Should get list of recipes by user', async () => {
+        // Arrange
+        const userDoc = getTestUserDoc();
+        const categoryDoc = getTestCategoryDoc();
+
+        const instructions = 'Season the chicken pieces with a pinch of salt and pepper. Heat oil in a large pan or pot over medium heat. Add cumin seeds and let them sizzle for a few seconds.';
+        const categoryIds = [categoryDoc._id.toString()];
+        const userId = userDoc._id.toString();
+
+        const recipeDocs = [
+            getTestRecipeDoc('Fish curry', instructions, categoryIds, userId),
+            getTestRecipeDoc('Vegetable Soup', instructions, categoryIds, userId),
+            getTestRecipeDoc('Mango curry', instructions, categoryIds, userId),
+            getTestRecipeDoc('Fruit', instructions, categoryIds, userId),
+            getTestRecipeDoc('Faluda drink', instructions, categoryIds, userId),
+        ];
+
+        const findMock = jest.fn().mockReturnThis();
+        const skipMock = jest.fn().mockReturnThis();
+        const limitMock = (recipeModel.create as jest.Mock).mockResolvedValue(recipeDocs);
+        recipeModel.find = findMock;
+        (recipeModel.find as jest.Mock).mockImplementation(() => ({
+            skip: skipMock,
+            limit: limitMock,
+        }));
+        (userModel.findById as jest.Mock).mockResolvedValue(userDoc);
+
+        // Act
+        const recipes = await recipeService.getRecipesByUser(userId, 0, recipeDocs.length);
+
+        // Assert
+        expect(Array.isArray(recipes)).toBe(true);
+        expect(recipes.length).toBe(recipeDocs.length);
+        recipeDocs.forEach((recipe) => {
+            expect(recipe).toHaveProperty('title');
+        });
+    });
+
+    it('Should not get list of recipes for invalid user', async () => {
+        // Arrange
+        const userDoc = getTestUserDoc();
+        const userId = userDoc._id.toString();
+
+        (userModel.findById as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(recipeService.getRecipesByUser(userId, 0, 5))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Should get a recipe by id', async () => {
+        // Arrange
+        const userDoc = getTestUserDoc();
+        const categoryDoc = getTestCategoryDoc();
+
+        const title = 'Chicken curry';
+        const instructions = 'Season the chicken pieces with a pinch of salt and pepper. Heat oil in a large pan or pot over medium heat. Add cumin seeds and let them sizzle for a few seconds.';
+        const categoryIds = [categoryDoc._id.toString()];
+        const userId = userDoc._id.toString();
+        const recipeDoc = getTestRecipeDoc(title, instructions, categoryIds, userId);
+
+        (recipeModel.findById as jest.Mock).mockResolvedValue(recipeDoc);
+
+        // Act
+        const recipe: DisplayableRecipe = await recipeService.getRecipe(recipeDoc._id.toString());
+
+        // Assert
+        expect(recipe).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(recipe.id)).toBe(true);
+        expect(recipe).toHaveProperty('title');
+        expect(recipe.title).toEqual(title);
+    });
+
+    it('Should not get a recipe for invalid recipe id', async () => {
+        // Arrange
+        const recipeId = new mongoose.Types.ObjectId().toString();
+
+        (recipeModel.findById as jest.Mock).mockResolvedValue(undefined);
+
+        // Act & Assert
+        await expect(recipeService.getRecipe(recipeId))
+            .rejects.toThrow(AppError);
+    });
+
+    const getTestRecipeDoc = (title: string, instructions: string, categoryIds: string[], userId: string) => {
+        const recipeId = new mongoose.Types.ObjectId();
         const subTitle = 'Asian chicken curry';
         const picture = 'chicken-curry.jpg';
-        const instructions = 'Season the chicken pieces with a pinch of salt and pepper. Heat oil in a large pan or pot over medium heat. Add cumin seeds and let them sizzle for a few seconds.';
         const ingredients = ['1 lb (450 g) chicken', '2 tablespoons oil', '1 large onion, finely chopped', '3 cloves garlic, minced'];
         const prepTime = '15 mins';
         const cookTime = '30 mins';
         const additionalTime = '5 mins';
-        const categoryIds = [new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString()];
         const tags = ['chicken', 'curry', 'spicy'];
-        const userId = userDoc._id.toString();
-
+        
         const recipeDoc = {
             _id: recipeId,
             title,
@@ -162,19 +279,8 @@ describe('category', () => {
             toJSON
         };
 
-        const execMock = (categoryModel.create as jest.Mock).mockResolvedValue([categoryDoc]);
-        (categoryModel.find as jest.Mock).mockImplementation(() => ({ exec: execMock }));
-        (userModel.findById as jest.Mock).mockResolvedValue(userDoc);
-        (recipeModel.create as jest.Mock).mockResolvedValue(recipeDoc);
-
-        // Act & Assert
-        await expect(recipeService.createRecipe(title, subTitle, picture, instructions, ingredients, prepTime, cookTime, additionalTime, categoryIds, tags, userId))
-            .rejects.toThrow(AppError);
-        await expect(recipeService.createRecipe(title, subTitle, picture, instructions, ingredients, prepTime, cookTime, additionalTime, categoryIds, tags, userId))
-            .rejects.toThrow(
-                expect.objectContaining({ message: expect.stringMatching(/^Some categories were not found./) })
-            );
-    });
+        return recipeDoc;
+    }
 
     const getTestUserDoc = () => {
         const id = new mongoose.Types.ObjectId();
