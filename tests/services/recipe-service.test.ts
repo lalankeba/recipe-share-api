@@ -11,7 +11,7 @@ jest.mock('../../src/models/recipe-model');
 jest.mock('../../src/models/user-model');
 jest.mock('../../src/models/category-model');
 
-describe('category', () => {
+describe('recipe', () => {
 
     beforeEach(() => {
         jest.clearAllMocks(); // Clear mocks before each test
