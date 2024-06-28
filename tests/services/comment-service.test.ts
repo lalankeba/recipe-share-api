@@ -83,6 +83,112 @@ describe('comment', () => {
             .rejects.toThrow(AppError);
     });
 
+    it('Should not create a new comment for invalid user', async () => {
+        // Arrange
+        const userId = new mongoose.Types.ObjectId().toString();
+        const recipeId = new mongoose.Types.ObjectId().toString();
+        const description = 'Yummy recipe. Thanks';
+
+        (userModel.findById as jest.Mock).mockResolvedValue(undefined);
+    
+        // Act & Assert
+        await expect(commentService.createComment(userId, recipeId, description))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Should not create a new comment for invalid recipe', async () => {
+        // Arrange
+        const userDoc = getTestUserDoc();
+        const userId = userDoc._id.toString();
+        const recipeId = new mongoose.Types.ObjectId().toString();
+        const description = 'Yummy recipe. Thanks';
+
+        (userModel.findById as jest.Mock).mockResolvedValue(userDoc);
+        (recipeModel.findById as jest.Mock).mockResolvedValue(undefined);
+    
+        // Act & Assert
+        await expect(commentService.createComment(userId, recipeId, description))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Should get list of comments', async () => {
+        // Arrange
+        const commentDocs = [
+            getTestCommentDoc('Nice one', new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString()),
+            getTestCommentDoc('Great article', new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString()),
+            getTestCommentDoc('Thanks for sharing', new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString()),
+            getTestCommentDoc('Wonderful. Thanks', new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString()),
+            getTestCommentDoc('Thanks for the yummy recipe', new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString())
+        ];
+
+        const findMock = jest.fn().mockReturnThis();
+        const skipMock = jest.fn().mockReturnThis();
+        const limitMock = (commentModel.create as jest.Mock).mockResolvedValue(commentDocs);
+        commentModel.find = findMock;
+        (commentModel.find as jest.Mock).mockImplementation(() => ({
+            skip: skipMock,
+            limit: limitMock,
+        }));
+
+        // Act
+        const comments = await commentService.getComments(0, commentDocs.length);
+
+        // Assert
+        expect(Array.isArray(comments)).toBe(true);
+        expect(comments.length).toBe(commentDocs.length);
+        commentDocs.forEach((comment) => {
+            expect(comment).toHaveProperty('description');
+        });
+    });
+
+    it('Should get list of comments by recipe', async () => {
+        // Arrange
+        const categoryDoc = getTestCategoryDoc();
+        const categoryIds = [categoryDoc._id.toString()];
+        const recipeUserId = new mongoose.Types.ObjectId().toString();
+        const recipeDoc = getTestRecipeDoc(categoryIds, recipeUserId);
+
+        const recipeId = recipeDoc._id.toString();
+        const commentDocs = [
+            getTestCommentDoc('Nice one', new mongoose.Types.ObjectId().toString(), recipeId),
+            getTestCommentDoc('Thanks for the yummy recipe', new mongoose.Types.ObjectId().toString(), recipeId),
+            getTestCommentDoc('Wonderful. Thanks', new mongoose.Types.ObjectId().toString(), recipeId),
+            getTestCommentDoc('Great article', new mongoose.Types.ObjectId().toString(), recipeId),
+            getTestCommentDoc('Thanks for sharing', new mongoose.Types.ObjectId().toString(), recipeId)
+        ];
+
+        (recipeModel.findById as jest.Mock).mockResolvedValue(recipeDoc);
+        const findMock = jest.fn().mockReturnThis();
+        const skipMock = jest.fn().mockReturnThis();
+        const limitMock = (commentModel.create as jest.Mock).mockResolvedValue(commentDocs);
+        commentModel.find = findMock;
+        (commentModel.find as jest.Mock).mockImplementation(() => ({
+            skip: skipMock,
+            limit: limitMock,
+        }));
+
+        // Act
+        const comments = await commentService.getCommentsByRecipe(recipeId, 0, commentDocs.length);
+
+        // Assert
+        expect(Array.isArray(comments)).toBe(true);
+        expect(comments.length).toBe(commentDocs.length);
+        commentDocs.forEach((comment) => {
+            expect(comment).toHaveProperty('description');
+        });
+    });
+
+    it('Should not get comments for invalid recipe', async () => {
+        // Arrange
+        const recipeId = new mongoose.Types.ObjectId().toString();
+
+        (recipeModel.findById as jest.Mock).mockResolvedValue(undefined);
+    
+        // Act & Assert
+        await expect(commentService.getCommentsByRecipe(recipeId, 0, 5))
+            .rejects.toThrow(AppError);
+    });
+
     const getTestCommentDoc = (description: string, userId: string, recipeId: string) => {
         const id = new mongoose.Types.ObjectId();
         
