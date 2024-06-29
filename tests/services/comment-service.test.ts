@@ -189,6 +189,35 @@ describe('comment', () => {
             .rejects.toThrow(AppError);
     });
 
+    it('Should get a comment by id', async () => {
+        // Arrange
+        const commentId = new mongoose.Types.ObjectId().toString();
+        const description = 'Nice one';
+        const commentDoc = getTestCommentDoc(description, new mongoose.Types.ObjectId().toString(), commentId);
+
+        (commentModel.findById as jest.Mock).mockResolvedValue(commentDoc);
+
+        // Act
+        const comment = await commentService.getComment(commentId);
+
+        // Assert
+        expect(comment).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(comment.id)).toBe(true);
+        expect(comment).toHaveProperty('description');
+        expect(comment.description).toEqual(description);
+    });
+
+    it('Should not get a comment by invalid id', async () => {
+        // Arrange
+        const commentId = new mongoose.Types.ObjectId().toString();
+
+        (commentModel.findById as jest.Mock).mockResolvedValue(undefined);
+    
+        // Act & Assert
+        await expect(commentService.getComment(commentId))
+            .rejects.toThrow(AppError);
+    });
+
     const getTestCommentDoc = (description: string, userId: string, recipeId: string) => {
         const id = new mongoose.Types.ObjectId();
         
