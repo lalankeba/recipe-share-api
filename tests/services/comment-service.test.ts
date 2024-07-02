@@ -218,6 +218,143 @@ describe('comment', () => {
             .rejects.toThrow(AppError);
     });
 
+    it('Should update an existing comment', async () => {
+        // Arrange
+        const userDoc = getTestUserDoc();
+        const categoryDoc = getTestCategoryDoc();
+
+        const categoryIds = [categoryDoc._id.toString()];
+        const recipeUserId = new mongoose.Types.ObjectId().toString();
+        const recipeDoc = getTestRecipeDoc(categoryIds, recipeUserId);
+        const recipeId = recipeDoc._id.toString();
+
+        const userId = userDoc._id.toString();
+        let description = 'Thanks for sharing a nice recipe. Keep it up.';
+        const commentDoc = getTestCommentDoc(description, userId, recipeId);
+        const version: number = commentDoc.__v;
+        description = "Great work";
+
+        const updatedCommentDoc = { ...commentDoc };
+        updatedCommentDoc.__v = version + 1;
+        updatedCommentDoc.description = description;
+
+        const updatedRecipeDoc = { ...recipeDoc };
+        const commentId = commentDoc._id.toString();
+        updatedRecipeDoc.comments = [{ commentId: commentId, description, userId }];
+        updatedRecipeDoc.totalComments = updatedRecipeDoc.totalComments + 1;
+
+        const execMock = (categoryModel.create as jest.Mock).mockResolvedValue([categoryDoc]);
+        (categoryModel.find as jest.Mock).mockImplementation(() => ({ exec: execMock }));
+        (userModel.findById as jest.Mock).mockResolvedValue(userDoc);
+        (recipeModel.findById as jest.Mock).mockResolvedValue(recipeDoc);
+        (commentModel.findById as jest.Mock).mockResolvedValue(commentDoc);
+        (commentModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedCommentDoc);
+        const sortMock = jest.fn().mockReturnThis();
+        const limitMock = jest.fn().mockReturnThis();
+        const execCommentMock = (commentModel.create as jest.Mock).mockResolvedValue([updatedCommentDoc]);
+        (commentModel.find as jest.Mock).mockImplementation(() => ({
+            sort: sortMock,
+            limit: limitMock,
+            exec: execCommentMock
+        }));
+
+        // Act
+        const updatedComment: DisplayableComment = await commentService.updateComment(commentId, userId, description, version);
+
+        // Assert
+        expect(updatedComment).toEqual(expect.any(Object));
+        expect(mongoose.Types.ObjectId.isValid(updatedComment.id)).toBe(true);
+        expect(updatedComment).toHaveProperty('description');
+        expect(updatedComment.description).toEqual(description);
+        expect(updatedComment).toHaveProperty('recipeId');
+        expect(updatedComment.recipeId).toEqual(recipeId);
+        expect(updatedComment).toHaveProperty('user');
+    });
+
+    it('Should not update an existing comment for invalid comment id', async () => {
+        // Arrange
+        const commentId = new mongoose.Types.ObjectId().toString();
+        const userId = new mongoose.Types.ObjectId().toString();
+        const description = 'Great recipe. Thanks.';
+        const version: number = 0;
+
+        (commentModel.findById as jest.Mock).mockResolvedValue(undefined);
+    
+        // Act & Assert
+        await expect(commentService.updateComment(commentId, userId, description, version))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Should not update an existing comment for invalid user id', async () => {
+        // Arrange
+        const commentId = new mongoose.Types.ObjectId().toString();
+        const recipeId = new mongoose.Types.ObjectId().toString();
+
+        const userId = new mongoose.Types.ObjectId().toString();
+        const description = 'Thanks for sharing a great recipe. Keep it up.';
+        const commentDoc = getTestCommentDoc(description, userId, recipeId);
+        const version: number = commentDoc.__v;
+
+        const differentUserId = new mongoose.Types.ObjectId().toString();
+
+        (commentModel.findById as jest.Mock).mockResolvedValue(commentDoc);
+    
+        // Act & Assert
+        await expect(commentService.updateComment(commentId, differentUserId, description, version))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Should not update an existing comment for invalid version', async () => {
+        // Arrange
+        const commentId = new mongoose.Types.ObjectId().toString();
+        const recipeId = new mongoose.Types.ObjectId().toString();
+
+        const userId = new mongoose.Types.ObjectId().toString();
+        const description = 'Thanks for sharing a great recipe. Keep it up.';
+        const commentDoc = getTestCommentDoc(description, userId, recipeId);
+
+        const differentVersion: number = 123;
+
+        (commentModel.findById as jest.Mock).mockResolvedValue(commentDoc);
+    
+        // Act & Assert
+        await expect(commentService.updateComment(commentId, userId, description, differentVersion))
+            .rejects.toThrow(AppError);
+    });
+
+    it('Could not update an existing comment for database malfunction', async () => {
+        // Arrange
+        const userDoc = getTestUserDoc();
+        const categoryDoc = getTestCategoryDoc();
+
+        const categoryIds = [categoryDoc._id.toString()];
+        const recipeUserId = new mongoose.Types.ObjectId().toString();
+        const recipeDoc = getTestRecipeDoc(categoryIds, recipeUserId);
+        const recipeId = recipeDoc._id.toString();
+
+        const userId = userDoc._id.toString();
+        let description = 'Thanks for sharing a nice recipe. Keep it up.';
+        const commentDoc = getTestCommentDoc(description, userId, recipeId);
+        const version: number = commentDoc.__v;
+        description = "Great work";
+
+        const updatedRecipeDoc = { ...recipeDoc };
+        const commentId = commentDoc._id.toString();
+        updatedRecipeDoc.comments = [{ commentId: commentId, description, userId }];
+        updatedRecipeDoc.totalComments = updatedRecipeDoc.totalComments + 1;
+
+        const execMock = (categoryModel.create as jest.Mock).mockResolvedValue([categoryDoc]);
+        (categoryModel.find as jest.Mock).mockImplementation(() => ({ exec: execMock }));
+        (userModel.findById as jest.Mock).mockResolvedValue(userDoc);
+        (recipeModel.findById as jest.Mock).mockResolvedValue(recipeDoc);
+        (commentModel.findById as jest.Mock).mockResolvedValue(commentDoc);
+        (commentModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(undefined);
+    
+        // Act & Assert
+        await expect(commentService.updateComment(commentId, userId, description, version))
+            .rejects.toThrow(AppError);
+    });
+
     const getTestCommentDoc = (description: string, userId: string, recipeId: string) => {
         const id = new mongoose.Types.ObjectId();
         
@@ -228,6 +365,7 @@ describe('comment', () => {
             recipeId,
             createdAt: new Date(),
             updatedAt: new Date(),
+            __v: 0,
             toJSON
         };
 
