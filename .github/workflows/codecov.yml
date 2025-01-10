@@ -24,6 +24,11 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Set environment variables
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      run: echo "JWT_SECRET is set"
+
     - name: Run tests and generate coverage
       run: npm run test:coverage
 
