@@ -9,6 +9,7 @@
     "add-build": "git add dist",
     "dev": "npx tsc -w & nodemon dist/app.js",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "start": "node dist/app.js",
     "lint": "npx eslint ."
   },
